@@ -1,0 +1,1384 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Kinetik">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#0a0c14">
+<title>Kinetik</title>
+<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiS2luZXRpayIsInNob3J0X25hbWUiOiJLaW5ldGlrIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBjMTQiLCJ0aGVtZV9jb2xvciI6IiMwYTBjMTQifQ==">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body,#root{width:100%;height:100%;overflow:hidden;background:#0a0c14;touch-action:none;-webkit-tap-highlight-color:transparent}
+body{font-family:'DM Sans',sans-serif;overscroll-behavior:none}
+input[type=range]{-webkit-appearance:auto}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
+<script type="text/babel">
+const {useState,useRef,useEffect,useCallback}=React;
+
+/* ═══ ICONS ═══ */
+const Icon = ({ name, size = 24, color = “currentColor” }) => {
+const d = {
+pen: <><path d="M3 21l1.5-4.5L17.5 3.5a2.12 2.12 0 013 3L7.5 19.5z" fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/><path d="M15 5.5l3 3" stroke={color} strokeWidth="1.8"/></>,
+brush: <><path d="M18.4 2.6a2.1 2.1 0 013 3L14 13l-4 1 1-4z" fill="none" stroke={color} strokeWidth="1.7"/><path d="M9 14.5c-2 0-4 1.5-5.5 3.5a1 1 0 00.5 1.5c2 .5 4-.5 5-2.5" fill="none" stroke={color} strokeWidth="1.7"/></>,
+eraser: <><path d="M7 21h10" stroke={color} strokeWidth="1.7" strokeLinecap="round"/><path d="M18 7l-9 9-4.5-.5L5 11l9-9z" fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round"/></>,
+bucket: <><path d="M16.5 9.4l-9-3.2a1 1 0 00-1.3.7L3.5 17.2a2 2 0 001.4 2.4l6.5 2.3a2 2 0 002.4-1.4l2.7-10.4" fill="none" stroke={color} strokeWidth="1.7"/><path d="M16 2c2 2 2 5 0 7" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round"/></>,
+eyedropper: <><path d="M20.7 4.7a2.4 2.4 0 00-3.4-3.4L14 4.6l4.4 4.4z" fill="none" stroke={color} strokeWidth="1.7"/><path d="M14 4.6L5.4 13.2a2 2 0 00-.5 1L3 21l6.8-1.9a2 2 0 001-.5L19.4 9" fill="none" stroke={color} strokeWidth="1.7"/></>,
+undo: <><path d="M3 10h12a5 5 0 010 10H12" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M7 6L3 10l4 4" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></>,
+redo: <><path d="M21 10H9a5 5 0 000 10h3" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M17 6l4 4-4 4" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></>,
+layers: <><path d="M12 2L2 7l10 5 10-5z" fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round"/><path d="M2 12l10 5 10-5" fill="none" stroke={color} strokeWidth="1.7"/><path d="M2 17l10 5 10-5" fill="none" stroke={color} strokeWidth="1.7"/></>,
+play: <polygon points="7,4 20,12 7,20" fill={color}/>,
+pause: <><rect x="6" y="4" width="3.5" height="16" rx="1" fill={color}/><rect x="14.5" y="4" width="3.5" height="16" rx="1" fill={color}/></>,
+plus: <path d="M12 5v14M5 12h14" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>,
+trash: <><path d="M4 7h16" stroke={color} strokeWidth="1.7" strokeLinecap="round"/><path d="M6 7v12a2 2 0 002 2h8a2 2 0 002-2V7" fill="none" stroke={color} strokeWidth="1.7"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" fill="none" stroke={color} strokeWidth="1.7"/></>,
+copy: <><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke={color} strokeWidth="1.7"/><path d="M5 15V5a2 2 0 012-2h10" fill="none" stroke={color} strokeWidth="1.7"/></>,
+eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" fill="none" stroke={color} strokeWidth="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.7"/></>,
+eyeOff: <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-10-8-10-8a18.45 18.45 0 015.06-5.94" fill="none" stroke={color} strokeWidth="1.7"/><line x1="1" y1="1" x2="23" y2="23" stroke={color} strokeWidth="1.7"/></>,
+x: <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round"/>,
+back: <path d="M15 18l-6-6 6-6" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>,
+settings: <><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.7"/><path d="M12 1v3m0 16v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M1 12h3m16 0h3M4.2 19.8l2.1-2.1m11.4-11.4l2.1-2.1" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></>,
+download: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" fill="none" stroke={color} strokeWidth="1.7"/><path d="M7 10l5 5 5-5" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke={color} strokeWidth="2"/></>,
+image: <><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke={color} strokeWidth="1.7"/><circle cx="8.5" cy="8.5" r="1.5" fill={color}/><path d="M21 15l-5-5L5 21" fill="none" stroke={color} strokeWidth="1.7"/></>,
+folder: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" fill="none" stroke={color} strokeWidth="1.7"/>,
+onion: <><ellipse cx="12" cy="14" rx="8" ry="7" fill="none" stroke={color} strokeWidth="1.4" opacity=".35"/><ellipse cx="10" cy="14" rx="6" ry="6" fill="none" stroke={color} strokeWidth="1.4" opacity=".6"/><ellipse cx="14" cy="14" rx="6" ry="6" fill="none" stroke={color} strokeWidth="1.4" opacity=".6"/></>,
+hand: <path d="M18 11V5.5a1.5 1.5 0 00-3 0V11m0-5.5a1.5 1.5 0 00-3 0V11m0-4.5a1.5 1.5 0 00-3 0V11m0-2.5a1.5 1.5 0 00-3 0V15a6 6 0 006 6h2a6 6 0 006-6V8.5a1.5 1.5 0 00-3 0V11" fill="none" stroke={color} strokeWidth="1.5"/>,
+smudge: <path d="M5 19c2-3 4-7 8-9s6-1 7 1-1 5-4 7-5 2-7 2-4-1-4-1" fill="none" stroke={color} strokeWidth="1.8"/>,
+lasso: <><path d="M17 3.34A9 9 0 117 20.66" fill="none" stroke={color} strokeWidth="1.7"/><path d="M12 22v-4m-3 2h6" stroke={color} strokeWidth="1.7" strokeLinecap="round"/></>,
+text: <><path d="M6 4h12" stroke={color} strokeWidth="2.2" strokeLinecap="round"/><path d="M12 4v16" stroke={color} strokeWidth="2"/><path d="M8 20h8" stroke={color} strokeWidth="2" strokeLinecap="round"/></>,
+transform: <><rect x="4" y="4" width="16" height="16" rx="1" fill="none" stroke={color} strokeWidth="1.5" strokeDasharray="3 2"/><circle cx="4" cy="4" r="2" fill={color}/><circle cx="20" cy="4" r="2" fill={color}/><circle cx="4" cy="20" r="2" fill={color}/><circle cx="20" cy="20" r="2" fill={color}/></>,
+symmetry: <><line x1="12" y1="3" x2="12" y2="21" stroke={color} strokeWidth="1.5" strokeDasharray="3 2"/><path d="M8 8L5 12l3 4M16 8l3 4-3 4" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></>,
+ruler: <><rect x="2" y="6" width="20" height="12" rx="1" fill="none" stroke={color} strokeWidth="1.5"/><path d="M6 6v4m4-4v3m4-3v4m4-4v3" stroke={color} strokeWidth="1.3"/></>,
+flip: <><path d="M12 3v18" stroke={color} strokeWidth="1.5" strokeDasharray="2 2"/><path d="M4 6l4 6-4 6" fill="none" stroke={color} strokeWidth="1.7"/><path d="M20 6l-4 6 4 6" fill="none" stroke={color} strokeWidth="1.7"/></>,
+move: <><path d="M12 2l3 3h-2v4h4v-2l3 3-3 3v-2h-4v4h2l-3 3-3-3h2v-4H7v2l-3-3 3-3v2h4V5H9z" fill={color}/></>,
+crop: <><path d="M6 2v16h16" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M18 22V6H2" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/></>,
+ref: <><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke={color} strokeWidth="1.5"/><path d="M2 14l5-5 3 3 4-4 8 8" fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round"/><circle cx="8" cy="9" r="2" fill="none" stroke={color} strokeWidth="1.5"/></>,
+line: <line x1="4" y1="20" x2="20" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round"/>,
+circle: <circle cx="12" cy="12" r="8" fill="none" stroke={color} strokeWidth="2"/>,
+};
+return <svg width={size} height={size} viewBox=“0 0 24 24” style={{flexShrink:0,display:“block”}}>{d[name]}</svg>;
+};
+
+/* ═══ UTILS ═══ */
+const uid = () => Math.random().toString(36).slice(2,9);
+const clamp = (v,a,b) => Math.max(a,Math.min(b,v));
+const hexRgb = h => [parseInt(h.slice(1,3),16),parseInt(h.slice(3,5),16),parseInt(h.slice(5,7),16)];
+const rgbHex = (r,g,b) => `#${[r,g,b].map(v=>clamp(v,0,255).toString(16).padStart(2,"0")).join("")}`;
+
+function hsvToRgb(h,s,v){h=((h%360)+360)%360;s=clamp(s,0,1);v=clamp(v,0,1);const c=v*s,x=c*(1-Math.abs((h/60)%2-1)),m=v-c;let r,g,b;if(h<60){r=c;g=x;b=0}else if(h<120){r=x;g=c;b=0}else if(h<180){r=0;g=c;b=x}else if(h<240){r=0;g=x;b=c}else if(h<300){r=x;g=0;b=c}else{r=c;g=0;b=x}return[Math.round((r+m)*255),Math.round((g+m)*255),Math.round((b+m)*255)];}
+function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4)}if(h<0)h+=360;return[h,mx?d/mx:0,mx];}
+
+const BRUSHES = [
+{id:“pen”,name:“Pen”,hard:1,sp:2,bop:1,psz:true,pop:false,sh:“r”},
+{id:“pencil”,name:“Pencil”,hard:.65,sp:1,bop:.8,psz:true,pop:true,sh:“r”},
+{id:“ink”,name:“Ink”,hard:1,sp:1,bop:1,psz:true,pop:false,sh:“r”},
+{id:“dip”,name:“Dip Pen”,hard:1,sp:1,bop:1,psz:true,pop:false,sh:“c”},
+{id:“marker”,name:“Marker”,hard:.9,sp:3,bop:.65,psz:false,pop:true,sh:“r”},
+{id:“soft”,name:“Soft Brush”,hard:.15,sp:2,bop:.4,psz:true,pop:true,sh:“r”},
+{id:“airbrush”,name:“Airbrush”,hard:.03,sp:1,bop:.12,psz:true,pop:true,sh:“r”},
+{id:“flat”,name:“Flat Brush”,hard:.85,sp:2,bop:.85,psz:true,pop:false,sh:“f”},
+{id:“crayon”,name:“Crayon”,hard:.5,sp:2,bop:.7,psz:true,pop:true,sh:“t”},
+{id:“spray”,name:“Spray”,hard:0,sp:1,bop:.3,psz:false,pop:true,sh:“s”},
+{id:“watercolor”,name:“Watercolor”,hard:.1,sp:2,bop:.25,psz:true,pop:true,sh:“r”},
+{id:“charcoal”,name:“Charcoal”,hard:.4,sp:1,bop:.6,psz:true,pop:true,sh:“t”},
+];
+const ERASERS = [
+{id:“e1”,name:“Hard Eraser”,hard:1,sp:2,bop:1,psz:true,pop:false,sh:“r”,eraser:true},
+{id:“e2”,name:“Soft Eraser”,hard:.15,sp:2,bop:.6,psz:true,pop:true,sh:“r”,eraser:true},
+{id:“e3”,name:“Sharp Eraser”,hard:1,sp:1,bop:1,psz:true,pop:false,sh:“r”,eraser:true},
+{id:“e4”,name:“Feather Eraser”,hard:.05,sp:1,bop:.3,psz:true,pop:true,sh:“r”,eraser:true},
+{id:“e5”,name:“Block Eraser”,hard:1,sp:2,bop:1,psz:false,pop:false,sh:“f”,eraser:true},
+];
+const PALETTE = [”#000000”,”#ffffff”,”#e74c3c”,”#e67e22”,”#f1c40f”,”#2ecc71”,”#3498db”,”#9b59b6”,”#e84393”,”#795548”,”#7f8c8d”,”#bdc3c7”,”#ff7979”,”#ffeaa7”,”#badc58”,”#7ed6df”,”#e056fd”,”#686de0”,”#4a0000”,”#4a2600”,”#4a4a00”,”#004a00”,”#00264a”,”#26004a”];
+const PRESETS = [{l:“HD”,w:1920,h:1080},{l:“720p”,w:1280,h:720},{l:“Square”,w:1080,h:1080},{l:“Portrait”,w:1080,h:1920},{l:“2K”,w:2048,h:2048},{l:“A4”,w:1240,h:1754}];
+const BLENDS = [“Normal”,“Multiply”,“Screen”,“Overlay”,“Darken”,“Lighten”,“Color Dodge”,“Color Burn”,“Hard Light”,“Soft Light”,“Difference”];
+
+/* ═══ IBIS-LIKE THEME ═══ */
+const TH = {
+topBar:”#b8b8b8”, topBarBorder:”#a0a0a0”, topIcon:”#555”,
+canvasBg:”#909090”,
+panelBg:“rgba(68,68,68,0.94)”, panelBorder:”#555”, panelText:”#eee”, panelDim:”#aaa”,
+bottomBar:”#3a3a3a”, bottomIcon:”#ccc”, bottomIconActive:”#5bc4f0”,
+brushPanel:“rgba(180,180,180,0.95)”, brushText:”#222”, brushDim:”#666”,
+accent:”#5bc4f0”, accentRed:”#e85d4a”,
+sliderTrack:”#4a7ab5”, sliderBg:”#888”,
+};
+
+/* ═══ APP ═══ */
+function App(){
+const [screen,setScreen]=useState(“home”);
+const [projects,setProjects]=useState([]);
+const [activeP,setActiveP]=useState(null);
+const saved=useRef(new Map());
+const openP=p=>{setActiveP(p);setScreen(“editor”)};
+const back=(id,fd)=>{if(id&&fd)saved.current.set(id,fd);setScreen(“gallery”)};
+const getSaved=id=>saved.current.get(id);
+if(screen===“home”)return <Home onGo={()=>setScreen(“gallery”)}/>;
+if(screen===“gallery”)return <Gallery projects={projects} getSaved={getSaved} onBack={()=>setScreen(“home”)} onNew={(w,h,name)=>{const p={id:uid(),name:name||“Untitled”,w,h,created:Date.now()};setProjects(pr=>[p,…pr]);openP(p)}} onOpen={openP} onDelete={id=>setProjects(p=>p.filter(x=>x.id!==id))}/>;
+if(screen===“editor”)return <Editor project={activeP} saved={saved.current.get(activeP?.id)} onBack={fd=>back(activeP?.id,fd)}/>;
+return null;
+}
+
+/* ═══ HOME ═══ */
+function Home({onGo}){
+const [ready,setReady]=useState(false);
+useEffect(()=>{requestAnimationFrame(()=>setReady(true))},[]);
+// Animated dots
+const dots=useRef(Array.from({length:40},()=>({
+x:Math.random()*100,y:Math.random()*100,
+r:Math.random()*2+1,
+dx:(Math.random()-.5)*.15,dy:(Math.random()-.5)*.15,
+op:Math.random()*.3+.1,
+hue:Math.floor(Math.random()*3) // 0=blue, 1=purple, 2=coral
+}))).current;
+const dotCanvas=useRef(null);
+useEffect(()=>{
+const c=dotCanvas.current;if(!c)return;
+c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;
+const ctx=c.getContext(“2d”);
+let raf;
+const colors=[“91,196,240”,“123,108,246”,“232,93,74”];
+const draw=()=>{
+ctx.clearRect(0,0,c.width,c.height);
+dots.forEach(d=>{
+d.x+=d.dx;d.y+=d.dy;
+if(d.x<0||d.x>100)d.dx*=-1;
+if(d.y<0||d.y>100)d.dy*=-1;
+const px=d.x/100*c.width,py=d.y/100*c.height;
+ctx.beginPath();ctx.arc(px,py,d.r*2,0,6.28);
+ctx.fillStyle=`rgba(${colors[d.hue]},${d.op})`;ctx.fill();
+// Connection lines to nearby dots
+dots.forEach(d2=>{
+if(d===d2)return;
+const dx2=(d2.x-d.x)/100*c.width,dy2=(d2.y-d.y)/100*c.height;
+const dist=Math.sqrt(dx2*dx2+dy2*dy2);
+if(dist<80){
+ctx.beginPath();ctx.moveTo(px,py);
+ctx.lineTo(d2.x/100*c.width,d2.y/100*c.height);
+ctx.strokeStyle=`rgba(${colors[d.hue]},${.04*(1-dist/80)})`;
+ctx.lineWidth=1;ctx.stroke();
+}
+});
+});
+raf=requestAnimationFrame(draw);
+};
+draw();
+return()=>cancelAnimationFrame(raf);
+},[]);
+
+return(
+<div style={{position:“fixed”,inset:0,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,overflow:“hidden”,fontFamily:”‘DM Sans’,sans-serif”,background:”#0a0c14”}}>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>{`@keyframes homeIn{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}} @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}`}</style>
+
+```
+  {/* Particle canvas */}
+  <canvas ref={dotCanvas} style={{position:"absolute",inset:0,width:"100%",height:"100%",pointerEvents:"none"}}/>
+
+  {/* Gradient overlay at bottom */}
+  <div style={{position:"absolute",bottom:0,left:0,right:0,height:"40%",background:"linear-gradient(to top,rgba(10,12,20,.9),transparent)",pointerEvents:"none"}}/>
+
+  {/* Content */}
+  <div style={{position:"relative",zIndex:1,textAlign:"center",animation:ready?"homeIn .7s cubic-bezier(.16,1,.3,1) both":"none"}}>
+    {/* Logo mark */}
+    <div style={{width:80,height:80,margin:"0 auto 20px",borderRadius:22,background:"linear-gradient(135deg,rgba(91,196,240,.15),rgba(123,108,246,.15),rgba(232,93,74,.15))",backdropFilter:"blur(10px)",display:"flex",alignItems:"center",justifyContent:"center",border:"1px solid rgba(255,255,255,.08)"}}>
+      <svg width="44" height="44" viewBox="0 0 44 44">
+        <defs><linearGradient id="klogo" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stopColor="#5bc4f0"/><stop offset="50%" stopColor="#7b6cf6"/><stop offset="100%" stopColor="#e85d4a"/></linearGradient></defs>
+        <path d="M10 34l2.5-7.5L26 13a3 3 0 014.2 4.2L17 30.5z" fill="none" stroke="url(#klogo)" strokeWidth="2.2" strokeLinejoin="round"/>
+        {/* Film strip */}
+        <rect x="32" y="8" width="4" height="4" rx=".8" fill="#5bc4f0" opacity=".5"/>
+        <rect x="32" y="14" width="4" height="4" rx=".8" fill="#7b6cf6" opacity=".5"/>
+        <rect x="32" y="20" width="4" height="4" rx=".8" fill="#e85d4a" opacity=".5"/>
+      </svg>
+    </div>
+
+    <h1 style={{margin:0,fontSize:42,fontWeight:800,letterSpacing:-1.5,color:"#fff",lineHeight:1}}>
+      Kinetik
+    </h1>
+    <div style={{margin:"8px auto 0",width:120,height:3,borderRadius:2,background:"linear-gradient(90deg,#5bc4f0,#7b6cf6,#e85d4a)",animation:"shimmer 3s ease-in-out infinite",backgroundSize:"200% 100%"}}/>
+    <p style={{margin:"12px 0 0",fontSize:13,color:"rgba(255,255,255,.35)",fontWeight:500,letterSpacing:1}}>ANIMATE YOUR IDEAS</p>
+  </div>
+
+  {/* CTA */}
+  <div style={{position:"relative",zIndex:1,marginTop:44,animation:ready?"homeIn .7s cubic-bezier(.16,1,.3,1) .15s both":"none"}}>
+    <button onClick={onGo} style={{
+      display:"flex",alignItems:"center",justifyContent:"center",gap:10,padding:"17px 52px",
+      borderRadius:16,border:"1px solid rgba(255,255,255,.1)",
+      background:"rgba(255,255,255,.06)",backdropFilter:"blur(12px)",
+      color:"#fff",fontSize:16,fontWeight:600,cursor:"pointer",fontFamily:"inherit",
+      touchAction:"manipulation",transition:"all .2s",
+    }}
+      onTouchStart={e=>{e.currentTarget.style.transform="scale(0.96)";e.currentTarget.style.background="rgba(255,255,255,.1)"}}
+      onTouchEnd={e=>{e.currentTarget.style.transform="scale(1)";e.currentTarget.style.background="rgba(255,255,255,.06)"}}>
+      <Icon name="folder" size={18} color="#5bc4f0"/> Open Gallery
+    </button>
+  </div>
+
+  <div style={{position:"absolute",bottom:24,fontSize:10,color:"rgba(255,255,255,.15)",fontWeight:500,letterSpacing:1,zIndex:1}}>KINETIK v1.0</div>
+</div>
+```
+
+);
+}
+
+/* ═══ GALLERY ═══ */
+function Gallery({projects,getSaved,onBack,onNew,onOpen,onDelete}){
+const [showNew,setShowNew]=useState(false);
+const [w,setW]=useState(1920);const [h,setH]=useState(1080);
+const [preview,setPreview]=useState(null); // project being previewed
+const [previewAnim,setPreviewAnim]=useState(false);
+const [previewY,setPreviewY]=useState(0); // for swipe dismiss
+const [previewFrame,setPreviewFrame]=useState(0);
+const dragStart=useRef(null);
+const [projName,setProjName]=useState(“Untitled”);
+
+// Cached thumbnails at reasonable res — no more lag
+const thumbCache=useRef(new Map());
+const mkThumb=(p,fi,maxW)=>{
+const fd=getSaved(p.id);
+if(!fd||fi>=fd.length)return null;
+const key=p.id+”*”+fi+”*”+maxW;
+if(thumbCache.current.has(key))return thumbCache.current.get(key);
+const f=fd[fi];
+const tw=maxW,th=Math.round(maxW*p.h/p.w);
+const c=document.createElement(“canvas”);c.width=tw;c.height=th;
+const ctx=c.getContext(“2d”);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality=“high”;
+for(const l of f.layers){if(l.vis){ctx.globalAlpha=l.op;ctx.drawImage(l.c,0,0,tw,th)}}
+const url=c.toDataURL(“image/jpeg”,0.88);
+thumbCache.current.set(key,url);return url;
+};
+const getThumb=(p)=>mkThumb(p,0,360);
+const getFrameThumb=(p,fi)=>mkThumb(p,fi,540);
+const getFrameCount=(p)=>{const fd=getSaved(p.id);return fd?fd.length:0};
+// Clear cache on gallery re-entry
+useEffect(()=>{thumbCache.current.clear()},[projects]);
+
+const openPreview=(p)=>{
+setPreview(p);setPreviewFrame(0);setPreviewY(0);
+requestAnimationFrame(()=>setPreviewAnim(true));
+};
+const closePreview=()=>{
+setPreviewAnim(false);
+setTimeout(()=>{setPreview(null);setPreviewY(0)},250);
+};
+
+// Swipe to dismiss
+const onPreviewTouchStart=(e)=>{dragStart.current={y:e.touches[0].clientY,time:Date.now()}};
+const onPreviewTouchMove=(e)=>{
+if(!dragStart.current)return;
+const dy=e.touches[0].clientY-dragStart.current.y;
+if(dy>0)setPreviewY(dy);
+};
+const onPreviewTouchEnd=()=>{
+if(previewY>120||(previewY>40&&Date.now()-dragStart.current?.time<200)){closePreview()}
+else{setPreviewY(0)}
+dragStart.current=null;
+};
+
+return(
+<div style={{position:“fixed”,inset:0,background:”#111318”,display:“flex”,flexDirection:“column”,fontFamily:”‘DM Sans’,sans-serif”,WebkitTapHighlightColor:“transparent”}}>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+<style>{`@keyframes slideUp{from{opacity:0;transform:translateY(40%)}to{opacity:1;transform:translateY(0)}} @keyframes fadeIn{from{opacity:0}to{opacity:1}} @keyframes cardIn{from{opacity:0;transform:scale(.94) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}`}</style>
+
+```
+  {/* Header */}
+  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 14px",height:54,flexShrink:0}}>
+    <button onClick={onBack} style={{background:"none",border:"none",color:"#888",cursor:"pointer",padding:8,touchAction:"manipulation",display:"flex",alignItems:"center",gap:4,fontSize:13,fontFamily:"inherit",fontWeight:500}}>
+      <Icon name="back" size={20} color="#888"/> Back
+    </button>
+    <span style={{fontSize:15,fontWeight:700,color:"#eee"}}>Gallery</span>
+    <button onClick={()=>setShowNew(true)} style={{background:"none",border:"none",cursor:"pointer",padding:8,touchAction:"manipulation"}}>
+      <Icon name="plus" size={22} color="#5bc4f0"/>
+    </button>
+  </div>
+
+  <div style={{width:"100%",height:1,background:"linear-gradient(90deg,transparent,rgba(255,255,255,.06),transparent)"}}/>
+
+  {/* Grid */}
+  <div style={{flex:1,overflowY:"auto",padding:"12px 10px",WebkitOverflowScrolling:"touch"}}>
+    {projects.length===0?(
+      <div style={{display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",height:"70vh",gap:16}}>
+        <div style={{width:64,height:64,borderRadius:16,background:"rgba(255,255,255,.04)",display:"flex",alignItems:"center",justifyContent:"center"}}>
+          <Icon name="image" size={28} color="#444"/>
+        </div>
+        <p style={{color:"#555",fontSize:14,margin:0,fontWeight:500}}>No projects yet</p>
+        <button onClick={()=>setShowNew(true)} style={{padding:"12px 36px",borderRadius:12,border:"none",background:"linear-gradient(135deg,#5bc4f0,#4a9fd4)",color:"#fff",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",touchAction:"manipulation"}}>Create First Project</button>
+      </div>
+    ):(
+      <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:8}}>
+        {projects.map((p,i)=>{
+          const thumb=getThumb(p);
+          const fc=getFrameCount(p);
+          return(
+            <button key={p.id} onClick={()=>openPreview(p)} style={{
+              background:"none",border:"none",borderRadius:8,padding:0,cursor:"pointer",overflow:"hidden",textAlign:"left",
+              touchAction:"manipulation",animation:`cardIn .3s ease-out ${i*.05}s both`,willChange:"transform,opacity",
+            }}>
+              <div style={{width:"100%",aspectRatio:"1/1",background:"#fff",borderRadius:8,overflow:"hidden",border:"1px solid #2a2c34",position:"relative"}}>
+                {thumb?<img src={thumb} alt="" style={{width:"100%",height:"100%",objectFit:"cover",imageRendering:"auto"}}/>
+                  :<div style={{width:"100%",height:"100%",display:"flex",alignItems:"center",justifyContent:"center",background:"#1a1c22"}}><Icon name="image" size={20} color="#333"/></div>}
+              </div>
+              <div style={{padding:"4px 2px"}}>
+                <div style={{fontSize:11,fontWeight:500,color:"#bbb",overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{p.name}</div>
+                <div style={{fontSize:9,color:"#555"}}>{p.w}×{p.h}{fc>0?` · ${fc}f`:""}</div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
+    )}
+  </div>
+
+  {/* ═══ ARTWORK PREVIEW (Ibis style) ═══ */}
+  {preview&&(
+    <div onClick={closePreview} style={{
+      position:"fixed",inset:0,background:previewAnim?"rgba(0,0,0,.65)":"rgba(0,0,0,0)",
+      display:"flex",alignItems:"center",justifyContent:"center",zIndex:50,
+      transition:"background .3s ease",willChange:"background",
+    }}>
+      <div onClick={e=>e.stopPropagation()}
+        onTouchStart={onPreviewTouchStart} onTouchMove={onPreviewTouchMove} onTouchEnd={onPreviewTouchEnd}
+        style={{
+          width:"92%",maxWidth:380,borderRadius:16,overflow:"hidden",
+          boxShadow:"0 20px 60px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.05)",
+          transform:`translateY(${previewY}px) scale(${previewAnim?1:.88})`,
+          opacity:previewAnim?Math.max(0,1-previewY/250):0,
+          transition:previewY===0?"all .35s cubic-bezier(.2,1,.3,1)":"none",
+          willChange:"transform,opacity",
+        }}>
+        {/* Drag handle on dark header */}
+        <div style={{background:"#1a1c24",padding:"10px 14px 8px",display:"flex",flexDirection:"column",alignItems:"center"}}>
+          <div style={{width:32,height:4,borderRadius:2,background:"#444",marginBottom:8}}/>
+          <div style={{width:"100%",display:"flex",justifyContent:"space-between",alignItems:"baseline"}}>
+            <span style={{fontSize:15,fontWeight:600,color:"#eee"}}>{preview.name}</span>
+            <span style={{fontSize:11,color:"#666"}}>{preview.w}×{preview.h}</span>
+          </div>
+        </div>
+
+        {/* Artwork on white */}
+        <div style={{background:"#fff",padding:12}}>
+          <div style={{width:"100%",aspectRatio:`${preview.w}/${preview.h}`,maxHeight:"50vh",background:"#fafafa",borderRadius:4,overflow:"hidden",display:"flex",alignItems:"center",justifyContent:"center"}}>
+            {getFrameThumb(preview,previewFrame)?
+              <img src={getFrameThumb(preview,previewFrame)} alt="" style={{width:"100%",height:"100%",objectFit:"contain"}}/>
+              :<div style={{color:"#ddd",fontSize:13}}>Empty canvas</div>}
+          </div>
+        </div>
+
+        {/* Frame scrubber */}
+        {getFrameCount(preview)>1&&(
+          <div style={{background:"#f8f8f8",padding:"8px 12px",overflowX:"auto",display:"flex",gap:5,WebkitOverflowScrolling:"touch",borderTop:"1px solid #eee"}}>
+            {Array.from({length:getFrameCount(preview)}).map((_,i)=>(
+              <button key={i} onClick={()=>setPreviewFrame(i)} style={{
+                flexShrink:0,width:48,height:34,borderRadius:5,overflow:"hidden",padding:0,
+                border:i===previewFrame?"2.5px solid #5bc4f0":"1.5px solid #ddd",
+                cursor:"pointer",background:"#fff",touchAction:"manipulation",
+                transition:"border-color .15s",
+              }}>
+                {getFrameThumb(preview,i)?
+                  <img src={getFrameThumb(preview,i)} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+                  :<div style={{fontSize:10,color:"#ccc",display:"flex",alignItems:"center",justifyContent:"center",height:"100%"}}>{i+1}</div>}
+              </button>
+            ))}
+            <div style={{flexShrink:0,display:"flex",alignItems:"center",paddingLeft:4}}>
+              <span style={{fontSize:10,color:"#aaa",whiteSpace:"nowrap"}}>{getFrameCount(preview)} frames</span>
+            </div>
+          </div>
+        )}
+
+        {/* Actions */}
+        <div style={{display:"flex",background:"#1a1c24"}}>
+          <button onClick={()=>{closePreview();setTimeout(()=>onOpen(preview),300)}}
+            style={{flex:1,padding:"15px 0",border:"none",borderRight:"1px solid #2a2c34",background:"none",color:"#5bc4f0",fontSize:14,fontWeight:600,cursor:"pointer",fontFamily:"inherit",touchAction:"manipulation"}}>
+            Edit
+          </button>
+          <button
+            style={{flex:1,padding:"15px 0",border:"none",borderRight:"1px solid #2a2c34",background:"none",color:"#888",fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit",touchAction:"manipulation"}}>
+            Share
+          </button>
+          <button onClick={()=>{onDelete(preview.id);closePreview()}}
+            style={{flex:1,padding:"15px 0",border:"none",background:"none",color:"#e05a47",fontSize:14,fontWeight:500,cursor:"pointer",fontFamily:"inherit",touchAction:"manipulation"}}>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+  )}
+
+  {/* ═══ NEW CANVAS SHEET ═══ */}
+  {showNew&&(
+    <div onClick={()=>setShowNew(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",display:"flex",alignItems:"flex-end",justifyContent:"center",zIndex:50}}>
+      <div onClick={e=>e.stopPropagation()} style={{
+        width:"100%",maxWidth:420,background:"#1e2028",borderRadius:"20px 20px 0 0",
+        padding:"16px 18px 32px",maxHeight:"78vh",overflowY:"auto",
+        animation:"slideUp .35s cubic-bezier(.16,1,.3,1) both",willChange:"transform,opacity",
+      }}>
+        <div style={{width:36,height:4,borderRadius:2,background:"#444",margin:"0 auto 14px"}}/>
+        <h2 style={{margin:"0 0 14px",fontSize:17,fontWeight:700,color:"#eee"}}>New Canvas</h2>
+
+        <div style={{marginBottom:12}}>
+          <label style={{fontSize:10,color:"#888",fontWeight:600}}>Project Name</label>
+          <input type="text" value={projName} onChange={e=>setProjName(e.target.value)} placeholder="Untitled"
+            style={{width:"100%",padding:"10px",borderRadius:8,border:"1px solid #333",background:"#151720",color:"#eee",fontSize:14,fontFamily:"inherit",boxSizing:"border-box",marginTop:4}}/>
+        </div>
+
+        <div style={{display:"flex",gap:8,marginBottom:14}}>
+          <div style={{flex:1}}><label style={{fontSize:10,color:"#888",fontWeight:600}}>Width</label>
+            <input type="number" value={w} onChange={e=>setW(+e.target.value)} style={{width:"100%",padding:"10px",borderRadius:8,border:"1px solid #333",background:"#151720",color:"#eee",fontSize:14,fontFamily:"inherit",boxSizing:"border-box",marginTop:4}}/></div>
+          <div style={{flex:1}}><label style={{fontSize:10,color:"#888",fontWeight:600}}>Height</label>
+            <input type="number" value={h} onChange={e=>setH(+e.target.value)} style={{width:"100%",padding:"10px",borderRadius:8,border:"1px solid #333",background:"#151720",color:"#eee",fontSize:14,fontFamily:"inherit",boxSizing:"border-box",marginTop:4}}/></div>
+        </div>
+
+        <div style={{display:"flex",flexWrap:"wrap",gap:5,marginBottom:20}}>
+          {PRESETS.map(p=>(<button key={p.l} onClick={()=>{setW(p.w);setH(p.h)}} style={{
+            padding:"8px 14px",borderRadius:8,
+            border:w===p.w&&h===p.h?"1.5px solid #5bc4f0":"1px solid #333",
+            background:w===p.w&&h===p.h?"rgba(91,196,240,0.1)":"transparent",
+            color:w===p.w&&h===p.h?"#5bc4f0":"#aaa",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit",touchAction:"manipulation",
+          }}>{p.l}<br/><span style={{fontSize:9,fontWeight:400,opacity:.6}}>{p.w}×{p.h}</span></button>))}
+        </div>
+
+        <button onClick={()=>{onNew(w,h,projName||"Untitled");setShowNew(false);setProjName("Untitled")}} style={{
+          width:"100%",padding:"14px 0",borderRadius:12,border:"none",
+          background:"linear-gradient(135deg,#5bc4f0,#4a9fd4)",color:"#fff",fontSize:15,fontWeight:700,
+          cursor:"pointer",fontFamily:"inherit",touchAction:"manipulation",
+        }}>Create</button>
+      </div>
+    </div>
+  )}
+</div>
+```
+
+);
+}
+
+/* ═══════════════════════════════════════
+EDITOR - Ibis Paint style
+═══════════════════════════════════════ */
+function Editor({project,saved,onBack}){
+const W=project.w,H=project.h;
+const mkLayer=(name=“Layer 1”)=>{const c=document.createElement(“canvas”);c.width=W;c.height=H;return{id:uid(),name,c,vis:true,op:1,blend:“Normal”}};
+const mkFrame=()=>({id:uid(),layers:[mkLayer()]});
+
+// State
+const [frames,setFrames]=useState(()=>saved||[mkFrame()]);
+const [fi,setFi]=useState(0);
+const [li,setLi]=useState(0);
+const [tool,setTool]=useState(“brush”);
+const [brush,setBrush]=useState(BRUSHES[0]);
+const [eraser,setEraser]=useState(ERASERS[0]);
+const [sz,setSz]=useState(8);
+const [eraserSz,setEraserSz]=useState(20);
+const [opac,setOpac]=useState(1);
+const [eraserOpac,setEraserOpac]=useState(1);
+const [col,setCol]=useState(”#000000”);
+const [hsv,setHsv]=useState([0,0,0]);
+const [stab,setStab]=useState(4);
+const prevTool=useRef(“brush”); // for quick swap
+const [fps,setFps]=useState(12);
+const [playing,setPlaying]=useState(false);
+const [onion,setOnion]=useState(true);
+const [onionN,setOnionN]=useState(2);
+const [onionA,setOnionA]=useState(0.25);
+const [panel,setPanel]=useState(null);
+const [zoom,setZoom]=useState(0.25); // start small, auto-fit will adjust
+const [pan,setPan]=useState({x:0,y:0});
+const [rot,setRot]=useState(0);
+const [undos,setUndos]=useState([]);
+const [redos,setRedos]=useState([]);
+const [sym,setSym]=useState(“off”);
+const [ruler,setRuler]=useState(“off”); // off, line, circle, ellipse
+const [refImg,setRefImg]=useState(null);
+const [refOp,setRefOp]=useState(0.3);
+const [colorHistory,setColorHistory]=useState([”#000000”]);
+const [showGrid,setShowGrid]=useState(false);
+const [gridSize,setGridSize]=useState(32);
+const [rectSelect,setRectSelect]=useState(null); // {x,y,w,h}
+const [rectSelData,setRectSelData]=useState(null);
+const [rectSelOffset,setRectSelOffset]=useState({x:0,y:0});
+const [exporting,setExporting]=useState(false);
+const [clipboard,setClipboard]=useState(null);
+
+const displayRef=useRef(null);
+const framesR=useRef(frames);const fiR=useRef(fi);const liR=useRef(li);
+const drawActive=useRef(false);const lastPt=useRef(null);const stabQ=useRef([]);
+const pointers=useRef(new Map());const gestBase=useRef(null);const gestActive=useRef(false);
+const playT=useRef(null);const rafId=useRef(null);const needsRender=useRef(true);
+const strokeStarted=useRef(false);
+const rulerStart=useRef(null); // for ruler drawing
+const rulerPreview=useRef(null);
+const canvasAreaRef=useRef(null);
+
+// Auto-fit zoom
+useEffect(()=>{
+const el=canvasAreaRef.current;if(!el)return;
+const fit=()=>{const r=el.getBoundingClientRect();setZoom(Math.min(r.width*.9/W,r.height*.9/H,1))};
+setTimeout(fit,50);
+},[W,H]);
+
+useEffect(()=>{framesR.current=frames},[frames]);
+useEffect(()=>{fiR.current=fi},[fi]);
+useEffect(()=>{liR.current=li},[li]);
+
+const curLayers=frames[fi]?.layers||[];
+const curCanvas=useCallback(()=>{const f=framesR.current[fiR.current];return f?.layers[liR.current]?.c||null},[]);
+
+// ── Render ──
+const renderOnce=useCallback(()=>{
+const dc=displayRef.current;if(!dc)return;
+const ctx=dc.getContext(“2d”);ctx.clearRect(0,0,W,H);
+const cfi=fiR.current;const fs=framesR.current;
+// Reference image
+if(refImg){ctx.save();ctx.globalAlpha=refOp;ctx.drawImage(refImg,0,0,W,H);ctx.restore()}
+// Onion
+if(onion&&!playing){
+for(let i=1;i<=onionN;i++){
+const a=onionA*(1-(i-1)/onionN);
+[-i,i].forEach(off=>{
+const idx=cfi+off;if(idx<0||idx>=fs.length)return;
+const f=fs[idx];ctx.save();
+for(const l of f.layers){if(l.vis){ctx.globalAlpha=a*l.op;ctx.drawImage(l.c,0,0)}}
+ctx.globalCompositeOperation=“source-atop”;
+ctx.fillStyle=off<0?“rgba(220,60,60,0.25)”:“rgba(60,60,220,0.25)”;
+ctx.fillRect(0,0,W,H);ctx.restore();
+});
+}
+}
+// Current frame
+const f=fs[cfi];if(f){
+for(const l of f.layers){if(!l.vis)continue;ctx.save();ctx.globalAlpha=l.op;
+const bm=l.blend===“Normal”?“source-over”:l.blend.replace(/\s+/g,”-”).toLowerCase();
+ctx.globalCompositeOperation=bm;ctx.drawImage(l.c,0,0);ctx.restore()}
+}
+// Ruler preview
+if(rulerPreview.current){
+const rp=rulerPreview.current;ctx.save();ctx.strokeStyle=col;ctx.lineWidth=sz;ctx.lineCap=“round”;ctx.globalAlpha=opac;
+if(rp.type===“line”){ctx.beginPath();ctx.moveTo(rp.x1,rp.y1);ctx.lineTo(rp.x2,rp.y2);ctx.stroke()}
+else if(rp.type===“circle”){const r=Math.sqrt((rp.x2-rp.x1)**2+(rp.y2-rp.y1)**2);ctx.beginPath();ctx.arc(rp.x1,rp.y1,r,0,Math.PI*2);ctx.stroke()}
+else if(rp.type===“ellipse”){const rx=Math.abs(rp.x2-rp.x1),ry=Math.abs(rp.y2-rp.y1);ctx.beginPath();ctx.ellipse(rp.x1,rp.y1,rx,ry,0,0,Math.PI*2);ctx.stroke()}
+ctx.restore();
+}
+// Grid overlay
+if(showGrid){
+ctx.save();ctx.strokeStyle=“rgba(100,100,100,0.3)”;ctx.lineWidth=1;
+for(let x=gridSize;x<W;x+=gridSize){ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,H);ctx.stroke()}
+for(let y=gridSize;y<H;y+=gridSize){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(W,y);ctx.stroke()}
+ctx.restore();
+}
+// Rect selection
+if(rectSelect){
+ctx.save();ctx.strokeStyle=TH.accent;ctx.lineWidth=2;ctx.setLineDash([6,4]);
+ctx.strokeRect(rectSelect.x+rectSelOffset.x,rectSelect.y+rectSelOffset.y,rectSelect.w,rectSelect.h);
+ctx.restore();
+}
+},[W,H,onion,onionN,onionA,playing,col,sz,opac,refImg,refOp,showGrid,gridSize,rectSelect,rectSelOffset]);
+
+// rAF loop
+useEffect(()=>{let r=true;const loop=()=>{if(!r)return;if(needsRender.current){renderOnce();needsRender.current=false}rafId.current=requestAnimationFrame(loop)};loop();return()=>{r=false;cancelAnimationFrame(rafId.current)}},[renderOnce]);
+const sched=()=>{needsRender.current=true};
+
+useEffect(()=>{const dc=displayRef.current;if(dc){dc.width=W;dc.height=H}sched()},[W,H]);
+useEffect(()=>{sched()},[fi,frames]);
+
+// Playback
+useEffect(()=>{if(playing){playT.current=setInterval(()=>{setFi(p=>{const n=(p+1)%framesR.current.length;sched();return n})},1000/fps)}else clearInterval(playT.current);return()=>clearInterval(playT.current)},[playing,fps]);
+
+// Coord transform
+const toCanvas=useCallback((cx,cy)=>{const dc=displayRef.current;if(!dc)return{x:0,y:0};const r=dc.getBoundingClientRect();return{x:(cx-r.left)*(W/r.width),y:(cy-r.top)*(H/r.height)}},[W,H]);
+
+// ── Stamp ──
+const stamp=useCallback((ctx,x,y,pr,br)=>{
+const activeSz=br.eraser?eraserSz:sz;
+const activeOp=br.eraser?eraserOpac:opac;
+const s=br.psz?activeSz*(.3+.7*pr):activeSz;const a=(br.pop?activeOp*(.3+.7*pr):activeOp)*br.bop;const[r,g,b]=hexRgb(col);
+ctx.save();
+if(br.eraser){ctx.globalCompositeOperation=“destination-out”;ctx.globalAlpha=a;ctx.beginPath();ctx.arc(x,y,s/2,0,6.28);ctx.fill();ctx.restore();return}
+ctx.globalAlpha=a;
+if(br.sh===“s”){for(let i=0;i<s;i++){const an=Math.random()*6.28,d=Math.random()*s/2;ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.beginPath();ctx.arc(x+Math.cos(an)*d,y+Math.sin(an)*d,Math.random()*1.5+.5,0,6.28);ctx.fill()}ctx.restore();return}
+if(br.sh===“c”){ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.translate(x,y);ctx.rotate(-.785);ctx.fillRect(-s/2,-s/8,s,s/4);ctx.restore();return}
+if(br.sh===“f”){ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.fillRect(x-s/2,y-s/6,s,s/3);ctx.restore();return}
+if(br.sh===“t”){for(let i=0;i<s*1.5;i++){const ox=(Math.random()-.5)*s*.8,oy=(Math.random()-.5)*s*.8;if(ox*ox+oy*oy>(s*.35)**2)continue;ctx.fillStyle=`rgba(${r},${g},${b},${.4+Math.random()*.6})`;ctx.beginPath();ctx.arc(x+ox,y+oy,Math.random()*1.5+.5,0,6.28);ctx.fill()}ctx.restore();return}
+if(br.hard>=.9){ctx.fillStyle=`rgb(${r},${g},${b})`;ctx.beginPath();ctx.arc(x,y,s/2,0,6.28);ctx.fill()}
+else{const grd=ctx.createRadialGradient(x,y,0,x,y,s/2);grd.addColorStop(0,`rgba(${r},${g},${b},1)`);grd.addColorStop(Math.min(br.hard,.95),`rgba(${r},${g},${b},${br.hard})`);grd.addColorStop(1,`rgba(${r},${g},${b},0)`);ctx.fillStyle=grd;ctx.beginPath();ctx.arc(x,y,s/2,0,6.28);ctx.fill()}
+ctx.restore();
+},[sz,eraserSz,opac,eraserOpac,col]);
+
+const drawSeg=useCallback((ctx,from,to,br)=>{
+const dx=to.x-from.x,dy=to.y-from.y,dist=Math.sqrt(dx*dx+dy*dy);
+const steps=Math.max(1,Math.floor(dist/Math.max(br.sp,1)));
+const mirror=(px,py)=>{const pts=[[px,py]];if(sym===“v”||sym===“4”)pts.push([W-px,py]);if(sym===“h”||sym===“4”)pts.push([px,H-py]);if(sym===“4”)pts.push([W-px,H-py]);return pts};
+for(let i=0;i<=steps;i++){const t=i/steps;const px=from.x+dx*t,py=from.y+dy*t,pr=from.pr+(to.pr-from.pr)*t;
+for(const[sx,sy] of mirror(px,py))stamp(ctx,sx,sy,pr,br)}
+},[stamp,sym,W,H]);
+
+// Smudge tool - carries color from previous point and blends it forward
+const smudgeBuffer=useRef(null);
+const smudgeFn=useCallback((ctx,x,y,pr,isFirst)=>{
+const r=Math.max(2,Math.floor(sz/2));const d=r*2;
+const sx=clamp(Math.floor(x-r),0,W-d);const sy=clamp(Math.floor(y-r),0,H-d);
+try{
+const current=ctx.getImageData(sx,sy,d,d);
+if(isFirst||!smudgeBuffer.current){smudgeBuffer.current=ctx.getImageData(sx,sy,d,d);return}
+const prev=smudgeBuffer.current;const strength=clamp(pr*.6,0.1,0.8);
+const cd=current.data;const pd=prev.data;const len=Math.min(cd.length,pd.length);
+for(let i=0;i<len;i+=4){
+cd[i]=cd[i]*(1-strength)+pd[i]*strength;
+cd[i+1]=cd[i+1]*(1-strength)+pd[i+1]*strength;
+cd[i+2]=cd[i+2]*(1-strength)+pd[i+2]*strength;
+}
+ctx.putImageData(current,sx,sy);
+smudgeBuffer.current=ctx.getImageData(sx,sy,d,d);
+}catch(e){}
+},[sz,W,H]);
+
+// Transform state
+const [transforming,setTransforming]=useState(false);
+const transformData=useRef(null); // {imageData, startX, startY, offX, offY}
+
+// Text state
+const [textMode,setTextMode]=useState(false);
+const [textInput,setTextInput]=useState(””);
+const [textPos,setTextPos]=useState(null);
+const [textSize,setTextSize]=useState(24);
+
+// Lasso state
+const lassoPath=useRef([]);
+const lassoData=useRef(null);
+const [hasLasso,setHasLasso]=useState(false);
+const lassoOffset=useRef({x:0,y:0});
+
+// Undo/Redo
+const pushUndo=useCallback(()=>{const c=curCanvas();if(!c)return;const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(c,0,0);setUndos(p=>[…p.slice(-30),{fi:fiR.current,li:liR.current,d:s}]);setRedos([])},[curCanvas,W,H]);
+const undo=useCallback(()=>{if(!undos.length)return;const u=undos[undos.length-1];const f=framesR.current[u.fi];if(f?.layers[u.li]){const l=f.layers[u.li];const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(l.c,0,0);setRedos(p=>[…p,{…u,d:s}]);const ctx=l.c.getContext(“2d”);ctx.clearRect(0,0,W,H);ctx.drawImage(u.d,0,0)}setUndos(p=>p.slice(0,-1));sched()},[undos,W,H]);
+const redo=useCallback(()=>{if(!redos.length)return;const r=redos[redos.length-1];const f=framesR.current[r.fi];if(f?.layers[r.li]){const l=f.layers[r.li];const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(l.c,0,0);setUndos(p=>[…p,{…r,d:s}]);const ctx=l.c.getContext(“2d”);ctx.clearRect(0,0,W,H);ctx.drawImage(r.d,0,0)}setRedos(p=>p.slice(0,-1));sched()},[redos,W,H]);
+
+// Flood fill
+const floodFill=useCallback((sx,sy)=>{const c=curCanvas();if(!c)return;const ctx=c.getContext(“2d”);const img=ctx.getImageData(0,0,W,H);const d=img.data;const ix=Math.floor(sx),iy=Math.floor(sy);if(ix<0||ix>=W||iy<0||iy>=H)return;const si=(iy*W+ix)*4;const[sr,sg,sb,sa]=[d[si],d[si+1],d[si+2],d[si+3]];const[tr,tg,tb]=hexRgb(col);if(sr===tr&&sg===tg&&sb===tb&&sa===255)return;const match=i=>Math.abs(d[i]-sr)+Math.abs(d[i+1]-sg)+Math.abs(d[i+2]-sb)+Math.abs(d[i+3]-sa)<40;const stack=[[ix,iy]];const vis=new Uint8Array(W*H);while(stack.length){const[cx,cy]=stack.pop();const k=cy*W+cx;if(vis[k]||cx<0||cx>=W||cy<0||cy>=H)continue;if(!match(k*4))continue;vis[k]=1;d[k*4]=tr;d[k*4+1]=tg;d[k*4+2]=tb;d[k*4+3]=255;stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1])}ctx.putImageData(img,0,0);sched()},[curCanvas,W,H,col]);
+
+// Track color history
+const trackColor=useCallback(()=>{setColorHistory(prev=>{const n=[col,…prev.filter(c=>c!==col)].slice(0,12);return n})},[col]);
+
+// Layer merge down
+const mergeDown=()=>{if(li<=0||curLayers.length<=1)return;pushUndo();
+const above=curLayers[li];const below=curLayers[li-1];
+const ctx=below.c.getContext(“2d”);ctx.globalAlpha=above.op;ctx.drawImage(above.c,0,0);ctx.globalAlpha=1;
+setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:f.layers.filter((_,j)=>j!==li)}:f));setLi(li-1);sched()};
+
+// Flatten all layers
+const flattenAll=()=>{if(curLayers.length<=1)return;pushUndo();
+const nc=document.createElement(“canvas”);nc.width=W;nc.height=H;const ctx=nc.getContext(“2d”);
+for(const l of curLayers){if(l.vis){ctx.globalAlpha=l.op;ctx.drawImage(l.c,0,0)}}ctx.globalAlpha=1;
+const nl={id:uid(),name:“Flattened”,c:nc,vis:true,op:1,blend:“Normal”};
+setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:[nl]}:f));setLi(0);sched()};
+
+// Import image as new layer
+const importAsLayer=()=>{const inp=document.createElement(“input”);inp.type=“file”;inp.accept=“image/*”;inp.onchange=e=>{
+const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{
+const nc=document.createElement(“canvas”);nc.width=W;nc.height=H;const ctx=nc.getContext(“2d”);
+const scale=Math.min(W/img.width,H/img.height);const dw=img.width*scale,dh=img.height*scale;
+ctx.drawImage(img,(W-dw)/2,(H-dh)/2,dw,dh);
+const nl={id:uid(),name:“Imported”,c:nc,vis:true,op:1,blend:“Normal”};
+setFrames(p=>p.map((fr,i)=>i===fi?{…fr,layers:[…fr.layers,nl]}:fr));setLi(curLayers.length);sched();
+};img.src=URL.createObjectURL(f)};inp.click()};
+
+// Copy/Paste
+const copySelection=()=>{if(rectSelect&&rectSelData){setClipboard(rectSelData)}else{
+const c=curCanvas();if(!c)return;setClipboard(c)}};
+const pasteClipboard=()=>{if(!clipboard)return;
+const nc=document.createElement(“canvas”);nc.width=W;nc.height=H;nc.getContext(“2d”).drawImage(clipboard,0,0);
+const nl={id:uid(),name:“Pasted”,c:nc,vis:true,op:1,blend:“Normal”};
+setFrames(p=>p.map((fr,i)=>i===fi?{…fr,layers:[…fr.layers,nl]}:fr));setLi(curLayers.length);sched()};
+
+// ── GIF Export ──
+const exportGif=useCallback(async()=>{
+setExporting(true);
+try{
+// Composite each frame to a smaller canvas for reasonable file size
+const scale=Math.min(1,480/Math.max(W,H));
+const gw=Math.round(W*scale),gh=Math.round(H*scale);
+const delay=Math.round(1000/fps);
+const frameCanvases=framesR.current.map(f=>{
+const c=document.createElement(“canvas”);c.width=gw;c.height=gh;const ctx=c.getContext(“2d”);
+for(const l of f.layers){if(l.vis){ctx.globalAlpha=l.op;ctx.drawImage(l.c,0,0,gw,gh)}}return c;
+});
+// Build GIF manually using minimal encoder
+const buildGif=(frames,w,h,delay)=>{
+// Quantize to 256 colors per frame, build GIF87a/89a
+const out=[];
+const putU16=(v)=>{out.push(v&0xff,(v>>8)&0xff)};
+// Header
+[71,73,70,56,57,97].forEach(b=>out.push(b)); // GIF89a
+putU16(w);putU16(h);
+out.push(0xf7,0,0); // GCT flag 256 colors, bg=0, aspect=0
+// Global color table (256*3 bytes) - build from first frame
+const firstCtx=frames[0].getContext(“2d”);
+const firstData=firstCtx.getImageData(0,0,w,h).data;
+// Simple median-cut quantizer: just use uniform palette
+const palette=[];
+for(let r=0;r<6;r++)for(let g=0;g<7;g++)for(let b=0;b<6;b++){
+palette.push(Math.round(r*51),Math.round(g*42.5),Math.round(b*51));
+}
+while(palette.length<768)palette.push(0);
+palette.forEach(b=>out.push(b));
+// Netscape extension for looping
+out.push(0x21,0xff,0x0b);
+[78,69,84,83,67,65,80,69,50,46,48].forEach(b=>out.push(b)); // NETSCAPE2.0
+out.push(3,1);putU16(0);out.push(0);
+// For each frame
+const nearest=(r,g,b)=>{
+let best=0,bestD=Infinity;
+for(let i=0;i<256;i++){
+const pr=palette[i*3],pg=palette[i*3+1],pb=palette[i*3+2];
+const d=(r-pr)**2+(g-pg)**2+(b-pb)**2;
+if(d<bestD){bestD=d;best=i}
+}return best;
+};
+frames.forEach(fc=>{
+const ctx=fc.getContext(“2d”);const imgData=ctx.getImageData(0,0,w,h).data;
+// GCE
+out.push(0x21,0xf9,4,0);putU16(Math.round(delay/10));out.push(0,0);
+// Image descriptor
+out.push(0x2c);putU16(0);putU16(0);putU16(w);putU16(h);out.push(0);
+// LZW encode
+const minCode=8;out.push(minCode);
+const pixels=[];
+for(let i=0;i<imgData.length;i+=4){pixels.push(nearest(imgData[i],imgData[i+1],imgData[i+2]))}
+// Simple LZW
+const clear=1<<minCode,eoi=clear+1;
+let codeSize=minCode+1,nextCode=eoi+1;
+const table=new Map();for(let i=0;i<clear;i++)table.set(String(i),i);
+const bits=[];let buf=0,bufLen=0;
+const writeBits=(val,len)=>{buf|=(val<<bufLen);bufLen+=len;while(bufLen>=8){bits.push(buf&0xff);buf>>=8;bufLen-=8}};
+writeBits(clear,codeSize);
+let cur=String(pixels[0]);
+for(let i=1;i<pixels.length;i++){
+const next=cur+”,”+pixels[i];
+if(table.has(next)){cur=next}else{
+writeBits(table.get(cur),codeSize);
+if(nextCode<4096){table.set(next,nextCode++);if(nextCode>(1<<codeSize)&&codeSize<12)codeSize++}
+else{writeBits(clear,codeSize);table.clear();for(let j=0;j<clear;j++)table.set(String(j),j);nextCode=eoi+1;codeSize=minCode+1}
+cur=String(pixels[i]);
+}
+}
+writeBits(table.get(cur),codeSize);
+writeBits(eoi,codeSize);
+if(bufLen>0)bits.push(buf&0xff);
+// Write sub-blocks
+for(let i=0;i<bits.length;){const chunk=bits.slice(i,i+255);out.push(chunk.length);chunk.forEach(b=>out.push(b));i+=255}
+out.push(0); // block terminator
+});
+out.push(0x3b); // trailer
+return new Uint8Array(out);
+};
+const gifBytes=buildGif(frameCanvases,gw,gh,delay);
+const blob=new Blob([gifBytes],{type:“image/gif”});
+const url=URL.createObjectURL(blob);
+const a=document.createElement(“a”);a.href=url;a.download=“animation.gif”;a.click();
+URL.revokeObjectURL(url);
+}catch(err){console.error(“GIF export error:”,err)}
+setExporting(false);
+},[W,H,fps]);
+
+// ── Pointer Events ──
+const onDown=useCallback(e=>{
+if(playing)return;e.preventDefault();
+pointers.current.set(e.pointerId,{x:e.clientX,y:e.clientY});
+if(pointers.current.size>=2){
+if(strokeStarted.current){undo();strokeStarted.current=false}
+drawActive.current=false;lastPt.current=null;
+const pts=[…pointers.current.values()];const dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;
+gestBase.current={dist:Math.sqrt(dx*dx+dy*dy),angle:Math.atan2(dy,dx),zoom,rot,px:pan.x,py:pan.y,mx:(pts[0].x+pts[1].x)/2,my:(pts[0].y+pts[1].y)/2};
+gestActive.current=true;return;
+}
+try{e.target.setPointerCapture(e.pointerId)}catch(er){}
+if(tool===“hand”){gestActive.current=true;gestBase.current={px:pan.x,py:pan.y,sx:e.clientX,sy:e.clientY,single:true};return}
+const pt=toCanvas(e.clientX,e.clientY);pt.pr=e.pressure>0?e.pressure:.5;
+
+```
+if(tool==="eyedropper"){const c=curCanvas();if(!c)return;const px=c.getContext("2d").getImageData(clamp(Math.floor(pt.x),0,W-1),clamp(Math.floor(pt.y),0,H-1),1,1).data;const nc=rgbHex(px[0],px[1],px[2]);setCol(nc);setHsv(rgbToHsv(px[0],px[1],px[2]));return}
+if(tool==="bucket"){pushUndo();floodFill(pt.x,pt.y);return}
+
+// Text tool - mark start, commit on up if didn't drag
+if(tool==="text"){
+  drawActive.current=true;lastPt.current=pt;return;
+}
+
+// Transform tool - grab layer to move
+if(tool==="transform"){
+  const c=curCanvas();if(!c)return;pushUndo();
+  transformData.current={startX:pt.x,startY:pt.y,offX:0,offY:0};
+  setTransforming(true);drawActive.current=true;return;
+}
+
+// Lasso tool
+if(tool==="lasso"){
+  if(hasLasso&&lassoData.current){
+    // Check if tapping inside selection to move it
+    drawActive.current=true;lastPt.current=pt;return;
+  }
+  // Start new lasso
+  pushUndo();lassoPath.current=[{x:pt.x,y:pt.y}];drawActive.current=true;return;
+}
+
+// Rect select tool
+if(tool==="rectsel"){
+  if(rectSelect&&rectSelData){
+    // Moving existing selection
+    pushUndo();drawActive.current=true;lastPt.current=pt;return;
+  }
+  // Start new selection
+  drawActive.current=true;lastPt.current=pt;
+  setRectSelect({x:pt.x,y:pt.y,w:0,h:0});return;
+}
+
+// Ruler mode
+if(ruler!=="off"){pushUndo();rulerStart.current={x:pt.x,y:pt.y};return}
+
+const c=curCanvas();if(!c)return;pushUndo();trackColor();strokeStarted.current=true;drawActive.current=true;
+stabQ.current=[pt];lastPt.current=pt;
+const ctx=c.getContext("2d");const br=tool==="eraser"?eraser:brush;
+if(tool==="smudge"){smudgeBuffer.current=null;smudgeFn(ctx,pt.x,pt.y,pt.pr,true)}
+else{stamp(ctx,pt.x,pt.y,pt.pr,br)}
+sched();
+```
+
+},[playing,tool,zoom,rot,pan,toCanvas,curCanvas,pushUndo,floodFill,brush,eraser,stamp,smudgeFn,undo,ruler,hasLasso]);
+
+const onMove=useCallback(e=>{
+e.preventDefault();pointers.current.set(e.pointerId,{x:e.clientX,y:e.clientY});
+if(gestActive.current&&gestBase.current){
+const g=gestBase.current;
+if(g.single){setPan({x:g.px+e.clientX-g.sx,y:g.py+e.clientY-g.sy});return}
+if(pointers.current.size>=2){const pts=[…pointers.current.values()];const dx=pts[1].x-pts[0].x,dy=pts[1].y-pts[0].y;const dist=Math.sqrt(dx*dx+dy*dy);const angle=Math.atan2(dy,dx);
+setZoom(clamp(g.zoom*(dist/g.dist),.15,8));setRot(g.rot+(angle-g.angle)*57.3);
+const mx=(pts[0].x+pts[1].x)/2,my=(pts[0].y+pts[1].y)/2;setPan({x:g.px+mx-g.mx,y:g.py+my-g.my})}
+return;
+}
+
+```
+// Transform - move layer content
+if(tool==="transform"&&drawActive.current&&transformData.current){
+  const pt=toCanvas(e.clientX,e.clientY);
+  const td=transformData.current;
+  td.offX=pt.x-td.startX;td.offY=pt.y-td.startY;
+  const c=curCanvas();if(!c)return;
+  const ctx=c.getContext("2d");
+  // Restore from undo, then draw offset
+  if(undos.length){const last=undos[undos.length-1];ctx.clearRect(0,0,W,H);ctx.drawImage(last.d,td.offX,td.offY)}
+  sched();return;
+}
+
+// Lasso - draw selection path or move selection
+if(tool==="lasso"&&drawActive.current){
+  const pt=toCanvas(e.clientX,e.clientY);
+  if(hasLasso&&lassoData.current&&lastPt.current){
+    // Move selection
+    const dx=pt.x-lastPt.current.x,dy=pt.y-lastPt.current.y;
+    lassoOffset.current.x+=dx;lassoOffset.current.y+=dy;
+    const c=curCanvas();if(!c)return;const ctx=c.getContext("2d");
+    // Redraw: clear, restore base, draw selection at offset
+    if(undos.length){const last=undos[undos.length-1];ctx.clearRect(0,0,W,H);ctx.drawImage(last.d,0,0)}
+    ctx.drawImage(lassoData.current,lassoOffset.current.x,lassoOffset.current.y);
+    lastPt.current=pt;sched();return;
+  }
+  lassoPath.current.push({x:pt.x,y:pt.y});sched();return;
+}
+
+// Rect select - draw or move
+if(tool==="rectsel"&&drawActive.current){
+  const pt2=toCanvas(e.clientX,e.clientY);
+  if(rectSelect&&rectSelData&&lastPt.current){
+    const dx=pt2.x-lastPt.current.x,dy=pt2.y-lastPt.current.y;
+    setRectSelOffset(prev=>({x:prev.x+dx,y:prev.y+dy}));
+    lastPt.current=pt2;sched();return;
+  }
+  if(lastPt.current){
+    const ox=lastPt.current.x,oy=lastPt.current.y;
+    setRectSelect({x:Math.min(ox,pt2.x),y:Math.min(oy,pt2.y),w:Math.abs(pt2.x-ox),h:Math.abs(pt2.y-oy)});
+    sched();
+  }return;
+}
+
+// Ruler preview
+if(ruler!=="off"&&rulerStart.current){
+  const pt=toCanvas(e.clientX,e.clientY);
+  rulerPreview.current={type:ruler,x1:rulerStart.current.x,y1:rulerStart.current.y,x2:pt.x,y2:pt.y};
+  sched();return;
+}
+if(!drawActive.current)return;
+const raw=toCanvas(e.clientX,e.clientY);raw.pr=e.pressure>0?e.pressure:.5;
+stabQ.current.push(raw);if(stabQ.current.length>stab)stabQ.current.shift();
+const q=stabQ.current;const pt={x:0,y:0,pr:0};q.forEach(p=>{pt.x+=p.x;pt.y+=p.y;pt.pr+=p.pr});pt.x/=q.length;pt.y/=q.length;pt.pr/=q.length;
+const c=curCanvas();if(!c)return;const ctx=c.getContext("2d");
+if(tool==="smudge"){smudgeFn(ctx,pt.x,pt.y,pt.pr,false);lastPt.current=pt;sched();return}
+const br=tool==="eraser"?eraser:brush;
+if(lastPt.current)drawSeg(ctx,lastPt.current,pt,br);lastPt.current=pt;sched();
+```
+
+},[toCanvas,curCanvas,tool,brush,eraser,drawSeg,stab,smudgeFn,ruler,hasLasso,undos,W,H]);
+
+const onUp=useCallback(e=>{
+pointers.current.delete(e.pointerId);
+if(pointers.current.size<2){gestActive.current=false;gestBase.current=null}
+
+```
+// Transform commit
+if(tool==="transform"&&transforming){setTransforming(false);transformData.current=null;drawActive.current=false;return}
+
+// Text tool - only open modal if user tapped (didn't drag)
+if(tool==="text"&&drawActive.current&&lastPt.current){
+  const pt=toCanvas(e.clientX,e.clientY);
+  const dist=Math.sqrt((pt.x-lastPt.current.x)**2+(pt.y-lastPt.current.y)**2);
+  if(dist<10){setTextPos({x:lastPt.current.x,y:lastPt.current.y});setTextMode(true)}
+  drawActive.current=false;lastPt.current=null;return;
+}
+
+// Rect select commit - extract selection
+if(tool==="rectsel"&&drawActive.current&&rectSelect&&!rectSelData&&rectSelect.w>2&&rectSelect.h>2){
+  const c=curCanvas();if(c){
+    const ctx=c.getContext("2d");const{x,y,w,h}=rectSelect;
+    const tmpC=document.createElement("canvas");tmpC.width=w;tmpC.height=h;
+    tmpC.getContext("2d").drawImage(c,x,y,w,h,0,0,w,h);
+    setRectSelData(tmpC);setRectSelOffset({x:0,y:0});
+    pushUndo();ctx.clearRect(x,y,w,h);sched();
+  }drawActive.current=false;return;
+}
+
+// Lasso - close path and extract selection
+if(tool==="lasso"&&drawActive.current&&!hasLasso&&lassoPath.current.length>3){
+  const c=curCanvas();if(!c){drawActive.current=false;return}
+  const ctx=c.getContext("2d");const path=lassoPath.current;
+  // Create clipping path and extract
+  const tmpC=document.createElement("canvas");tmpC.width=W;tmpC.height=H;const tmpCtx=tmpC.getContext("2d");
+  tmpCtx.beginPath();tmpCtx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++)tmpCtx.lineTo(path[i].x,path[i].y);
+  tmpCtx.closePath();tmpCtx.clip();tmpCtx.drawImage(c,0,0);
+  lassoData.current=tmpC;lassoOffset.current={x:0,y:0};
+  // Erase selection area from original
+  ctx.save();ctx.beginPath();ctx.moveTo(path[0].x,path[0].y);
+  for(let i=1;i<path.length;i++)ctx.lineTo(path[i].x,path[i].y);
+  ctx.closePath();ctx.clip();ctx.clearRect(0,0,W,H);ctx.restore();
+  setHasLasso(true);drawActive.current=false;sched();return;
+}
+
+// Ruler commit
+if(ruler!=="off"&&rulerStart.current){
+  const pt=toCanvas(e.clientX,e.clientY);const c=curCanvas();
+  if(c){const ctx=c.getContext("2d");ctx.save();ctx.strokeStyle=col;ctx.lineWidth=sz;ctx.lineCap="round";ctx.globalAlpha=opac;
+    const rs=rulerStart.current;
+    if(ruler==="line"){ctx.beginPath();ctx.moveTo(rs.x,rs.y);ctx.lineTo(pt.x,pt.y);ctx.stroke()}
+    else if(ruler==="circle"){const r=Math.sqrt((pt.x-rs.x)**2+(pt.y-rs.y)**2);ctx.beginPath();ctx.arc(rs.x,rs.y,r,0,Math.PI*2);ctx.stroke()}
+    else if(ruler==="ellipse"){ctx.beginPath();ctx.ellipse(rs.x,rs.y,Math.abs(pt.x-rs.x),Math.abs(pt.y-rs.y),0,0,Math.PI*2);ctx.stroke()}
+    ctx.restore()}
+  rulerStart.current=null;rulerPreview.current=null;sched();return;
+}
+if(pointers.current.size===0){drawActive.current=false;lastPt.current=null;stabQ.current=[];strokeStarted.current=false;invalidateThumb()}
+```
+
+},[ruler,toCanvas,curCanvas,col,sz,opac,tool,transforming,hasLasso,W,H]);
+
+// Scroll zoom
+useEffect(()=>{const h=e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();setZoom(z=>clamp(z*(1-e.deltaY*.002),.15,8))}};window.addEventListener(“wheel”,h,{passive:false});return()=>window.removeEventListener(“wheel”,h)},[]);
+// Keys
+useEffect(()=>{const h=e=>{if((e.ctrlKey||e.metaKey)&&e.key===“z”){e.preventDefault();undo()}if((e.ctrlKey||e.metaKey)&&e.key===“y”){e.preventDefault();redo()}if(e.key===” “){e.preventDefault();setPlaying(p=>!p)}};window.addEventListener(“keydown”,h);return()=>window.removeEventListener(“keydown”,h)},[undo,redo]);
+
+// Frame ops
+const addFrame=()=>{const nf=mkFrame();setFrames(p=>{const a=[…p];a.splice(fi+1,0,nf);return a});setFi(fi+1);setLi(0)};
+const dupFrame=()=>{const f=frames[fi];if(!f)return;const nls=f.layers.map(l=>{const nc=document.createElement(“canvas”);nc.width=W;nc.height=H;nc.getContext(“2d”).drawImage(l.c,0,0);return{…l,id:uid(),c:nc}});setFrames(p=>{const a=[…p];a.splice(fi+1,0,{id:uid(),layers:nls});return a});setFi(fi+1)};
+const delFrame=()=>{if(frames.length<=1)return;const ni=Math.min(fi,frames.length-2);setFrames(p=>p.filter((_,i)=>i!==fi));setFi(ni);setLi(0)};
+const switchFrame=i=>{if(!playing){setFi(i);setLi(0)}};
+
+// Layer ops
+const addLayer=()=>{const nl=mkLayer(`Layer ${curLayers.length+1}`);setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:[…f.layers,nl]}:f));setLi(curLayers.length)};
+const delLayer=()=>{if(curLayers.length<=1)return;setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:f.layers.filter((_,j)=>j!==li)}:f));setLi(Math.max(0,li-1))};
+const toggleVis=idx=>{setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:f.layers.map((l,j)=>j===idx?{…l,vis:!l.vis}:l)}:f));sched()};
+const setLayerOp=(idx,v)=>{setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:f.layers.map((l,j)=>j===idx?{…l,op:v}:l)}:f));sched()};
+const setLayerBlend=(idx,v)=>{setFrames(p=>p.map((f,i)=>i===fi?{…f,layers:f.layers.map((l,j)=>j===idx?{…l,blend:v}:l)}:f));sched()};
+const moveLayer=(idx,dir)=>{const ni=idx+dir;if(ni<0||ni>=curLayers.length)return;setFrames(p=>p.map((f,i)=>{if(i!==fi)return f;const ls=[…f.layers];[ls[idx],ls[ni]]=[ls[ni],ls[idx]];return{…f,layers:ls}}));setLi(ni);sched()};
+
+// Tween
+const genTween=()=>{if(fi>=frames.length-1)return;const tweens=[];for(let i=1;i<=3;i++){const t=i/4;const src=frames[fi],dst=frames[fi+1];const nls=src.layers.map((sl,j)=>{const nc=document.createElement(“canvas”);nc.width=W;nc.height=H;const ctx=nc.getContext(“2d”);ctx.globalAlpha=1-t;ctx.drawImage(sl.c,0,0);if(dst.layers[j]){ctx.globalAlpha=t;ctx.drawImage(dst.layers[j].c,0,0)}return{…sl,id:uid(),c:nc}});tweens.push({id:uid(),layers:nls})}setFrames(p=>{const a=[…p];a.splice(fi+1,0,…tweens);return a})};
+
+const exportPng=()=>{const c=document.createElement(“canvas”);c.width=W;c.height=H;const ctx=c.getContext(“2d”);for(const l of curLayers){if(l.vis){ctx.globalAlpha=l.op;ctx.drawImage(l.c,0,0)}}const a=document.createElement(“a”);a.href=c.toDataURL(“image/png”);a.download=`frame_${fi+1}.png`;a.click()};
+
+const editorThumbCache=useRef(new Map());
+const thumb=(f,idx)=>{
+const key=f.id+”*”+idx+”*”+f.layers.length;
+if(editorThumbCache.current.has(key))return editorThumbCache.current.get(key);
+const tw=240,th=Math.round(240*H/W);
+const c=document.createElement(“canvas”);c.width=tw;c.height=th;
+const ctx=c.getContext(“2d”);ctx.imageSmoothingEnabled=true;ctx.imageSmoothingQuality=“high”;
+for(const l of f.layers){if(l.vis){ctx.globalAlpha=l.op;ctx.drawImage(l.c,0,0,tw,th)}}
+const url=c.toDataURL(“image/jpeg”,0.8);
+editorThumbCache.current.set(key,url);return url;
+};
+// Invalidate thumbs when drawing changes
+const invalidateThumb=()=>{editorThumbCache.current.clear()};
+
+// Color
+const setColHSV=(h,s,v)=>{setHsv([h,s,v]);const[r,g,b]=hsvToRgb(h,s,v);setCol(rgbHex(r,g,b))};
+useEffect(()=>{const[r,g,b]=hexRgb(col);setHsv(rgbToHsv(r,g,b))},[]);
+
+// Ref image
+const importRef=()=>{const inp=document.createElement(“input”);inp.type=“file”;inp.accept=“image/*”;inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const img=new Image();img.onload=()=>{setRefImg(img);sched()};img.src=URL.createObjectURL(f)};inp.click()};
+
+const closeP=()=>setPanel(null);
+const tp=n=>setPanel(p=>p===n?null:n);
+
+// ── Ibis-style slider ──
+const ISL=({label,val,set,min,max,step=1,unit=””})=>(
+<div style={{marginBottom:6}}>
+<div style={{display:“flex”,justifyContent:“space-between”,fontSize:11,color:TH.brushText,marginBottom:3}}>
+<span>{label}</span><span style={{color:TH.brushDim}}>{typeof val===“number”&&val%1?val.toFixed(2):val}{unit}</span>
+</div>
+<div style={{display:“flex”,alignItems:“center”,gap:4}}>
+<button onClick={()=>set(clamp(val-(step||1),min,max))} style={{width:28,height:28,borderRadius:14,border:“none”,background:”#555”,color:”#fff”,fontSize:14,fontWeight:700,display:“flex”,alignItems:“center”,justifyContent:“center”,cursor:“pointer”,fontFamily:“inherit”,flexShrink:0,touchAction:“manipulation”}}>−</button>
+<input type=“range” min={min} max={max} step={step} value={val} onChange={e=>set(+e.target.value)}
+style={{flex:1,height:28,accentColor:TH.sliderTrack,cursor:“pointer”,touchAction:“manipulation”,margin:0}}/>
+<button onClick={()=>set(clamp(val+(step||1),min,max))} style={{width:28,height:28,borderRadius:14,border:“none”,background:”#555”,color:”#fff”,fontSize:14,fontWeight:700,display:“flex”,alignItems:“center”,justifyContent:“center”,cursor:“pointer”,fontFamily:“inherit”,flexShrink:0,touchAction:“manipulation”}}>+</button>
+</div>
+</div>
+);
+
+/* ═══ RENDER ═══ */
+return(
+<div style={{position:“fixed”,inset:0,display:“flex”,flexDirection:“column”,background:TH.canvasBg,fontFamily:”‘DM Sans’,sans-serif”,userSelect:“none”,overflow:“hidden”,WebkitTapHighlightColor:“transparent”}}>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+
+```
+  {/* ═══ TOP BAR (Ibis style - light gray) ═══ */}
+  <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"0 4px",height:38,background:TH.topBar,borderBottom:`1px solid ${TH.topBarBorder}`,flexShrink:0,zIndex:10}}>
+    <div style={{display:"flex",alignItems:"center",gap:0}}>
+      <button onClick={undo} style={{background:"none",border:"none",color:undos.length?TH.topIcon:"#aaa",cursor:"pointer",padding:8,opacity:undos.length?1:.4,touchAction:"manipulation",minWidth:36,minHeight:36}}><Icon name="undo" size={18} color={undos.length?TH.topIcon:"#aaa"}/></button>
+      <button onClick={redo} style={{background:"none",border:"none",color:redos.length?TH.topIcon:"#aaa",cursor:"pointer",padding:8,opacity:redos.length?1:.4,touchAction:"manipulation",minWidth:36,minHeight:36}}><Icon name="redo" size={18} color={redos.length?TH.topIcon:"#aaa"}/></button>
+    </div>
+    <div style={{display:"flex",alignItems:"center",gap:0}}>
+      <button onClick={()=>tp("ruler")} style={{background:"none",border:"none",cursor:"pointer",padding:8,touchAction:"manipulation",minWidth:36,minHeight:36}}><Icon name="ruler" size={18} color={ruler!=="off"?TH.accent:TH.topIcon}/></button>
+      <button onClick={importRef} style={{background:"none",border:"none",cursor:"pointer",padding:8,touchAction:"manipulation",minWidth:36,minHeight:36}}><Icon name="ref" size={18} color={refImg?TH.accent:TH.topIcon}/></button>
+      <button onClick={()=>{const el=canvasAreaRef.current;if(el){const r=el.getBoundingClientRect();setZoom(Math.min(r.width*.9/W,r.height*.9/H,1))}setPan({x:0,y:0});setRot(0)}} style={{fontSize:9,padding:"4px 8px",borderRadius:4,border:`1px solid ${TH.topBarBorder}`,background:"rgba(255,255,255,.3)",color:TH.topIcon,cursor:"pointer",fontFamily:"inherit",marginRight:2,touchAction:"manipulation",minHeight:28}}>
+        {Math.round(zoom*100)}%{rot!==0&&` ${Math.round(rot)}°`}
+      </button>
+      <button onClick={()=>tp("flip")} style={{background:"none",border:"none",cursor:"pointer",padding:8,touchAction:"manipulation",minWidth:36,minHeight:36}}><Icon name="flip" size={18} color={TH.topIcon}/></button>
+    </div>
+  </div>
+
+  {/* ═══ CANVAS AREA ═══ */}
+  <div ref={canvasAreaRef} style={{flex:1,position:"relative",overflow:"hidden",touchAction:"none"}}
+    onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onPointerLeave={onUp}
+    onClick={()=>{if(panel)closeP()}}>
+
+    <div style={{position:"absolute",inset:0,display:"flex",alignItems:"center",justifyContent:"center",
+      transform:`translate(${pan.x}px,${pan.y}px) scale(${zoom}) rotate(${rot}deg)`,transformOrigin:"center",pointerEvents:"none"}}>
+      <div style={{position:"relative",boxShadow:"0 2px 20px rgba(0,0,0,.3)"}}>
+        {sym!=="off"&&(<svg style={{position:"absolute",inset:0,pointerEvents:"none",zIndex:2}} viewBox={`0 0 ${W} ${H}`}>
+          {(sym==="v"||sym==="4")&&<line x1={W/2} y1={0} x2={W/2} y2={H} stroke={TH.accent} strokeWidth="2" opacity=".3" strokeDasharray="10 6"/>}
+          {(sym==="h"||sym==="4")&&<line x1={0} y1={H/2} x2={W} y2={H/2} stroke={TH.accent} strokeWidth="2" opacity=".3" strokeDasharray="10 6"/>}
+        </svg>)}
+        <canvas ref={displayRef} style={{display:"block",width:W,height:H,maxWidth:"none",background:"#fff",pointerEvents:"auto",touchAction:"none",imageRendering:"auto"}}/>
+      </div>
+    </div>
+
+    {/* ═══ PANELS ═══ */}
+    {panel&&(<div onClick={e=>{e.stopPropagation();closeP()}} style={{position:"absolute",inset:0,zIndex:25}}>
+
+      {/* Tool Grid */}
+      {panel==="tools"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",left:8,bottom:8,background:TH.panelBg,border:`1px solid ${TH.panelBorder}`,borderRadius:14,padding:10,boxShadow:"0 8px 30px rgba(0,0,0,.5)",display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:3}}>
+        {[["brush","Brush"],["eraser","Eraser"],["bucket","Bucket"],["eyedropper","Picker"],["hand","Hand"],["smudge","Smudge"],["lasso","Lasso"],["rectsel","Select"],["text","Text"],["transform","Move"]].map(([id,label])=>(
+          <button key={id} onClick={()=>{setTool(id);if(id!=="rectsel"){setRectSelect(null);setRectSelData(null)}if(id!=="lasso"){setHasLasso(false);lassoData.current=null}closeP()}} style={{display:"flex",flexDirection:"column",alignItems:"center",gap:3,padding:"10px 8px",borderRadius:10,border:"none",background:tool===id?TH.accentBg:"transparent",color:tool===id?TH.accent:TH.panelText,cursor:"pointer",fontSize:10,fontWeight:500,fontFamily:"inherit",touchAction:"manipulation",minWidth:44,minHeight:44}}>
+            <Icon name={id==="rectsel"?"crop":id==="smudge"?"smudge":id==="lasso"?"lasso":id==="text"?"text":id==="transform"?"move":id==="hand"?"hand":id} size={20} color={tool===id?TH.accent:TH.panelText}/>{label}
+          </button>))}
+      </div>)}
+
+      {/* Brush Panel (Ibis style - lighter) */}
+      {panel==="brush"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",left:0,right:0,bottom:0,maxHeight:"65vh",background:TH.brushPanel,borderRadius:"16px 16px 0 0",display:"flex",flexDirection:"column",boxShadow:"0 -4px 20px rgba(0,0,0,.3)"}}>
+        <div style={{width:36,height:4,borderRadius:2,background:"#999",margin:"8px auto 4px"}}/>
+        <div style={{padding:"6px 14px 0",display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+          <span style={{fontSize:14,fontWeight:700,color:TH.brushText}}>Brush ({BRUSHES.length})</span>
+        </div>
+        {/* Preview stroke */}
+        <div style={{margin:"8px 14px",height:40,background:"repeating-conic-gradient(#ddd 0% 25%,#fff 0% 50%) 0 0/10px 10px",borderRadius:6,display:"flex",alignItems:"center",justifyContent:"center",overflow:"hidden"}}>
+          <svg width="100%" height="30" viewBox="0 0 240 30"><path d="M15,25 Q60,3 120,15 Q180,27 225,5" fill="none" stroke={col} strokeWidth={Math.min(sz/3,6)} strokeLinecap="round" opacity={opac}/></svg>
+        </div>
+        {/* Brush list */}
+        <div style={{flex:1,overflowY:"auto",padding:"0 10px 6px",maxHeight:"30vh"}}>
+          {(tool==="eraser"?ERASERS:BRUSHES).map(b=>(
+            <button key={b.id} onClick={()=>tool==="eraser"?setEraser(b):setBrush(b)} style={{display:"flex",alignItems:"center",gap:8,width:"100%",padding:"8px",marginBottom:2,borderRadius:6,textAlign:"left",
+              border:(tool==="eraser"?eraser.id:brush.id)===b.id?`2px solid ${TH.sliderTrack}`:"2px solid transparent",
+              background:(tool==="eraser"?eraser.id:brush.id)===b.id?"rgba(74,122,181,0.1)":"transparent",
+              color:TH.brushText,cursor:"pointer",fontSize:12,fontFamily:"inherit"}}>
+              <svg width="40" height="14" viewBox="0 0 40 14"><path d={`M3,12 Q10,${b.hard>.5?2:7} 20,7 Q30,${b.hard>.5?12:4} 37,2`} fill="none" stroke={TH.brushText} strokeWidth="2" strokeLinecap="round"/></svg>
+              {b.name}
+            </button>))}
+        </div>
+        {/* Sliders */}
+        <div style={{padding:"8px 14px 12px",borderTop:"1px solid #bbb"}}>
+          <ISL label="Thickness" val={tool==="eraser"?eraserSz:sz} set={tool==="eraser"?setEraserSz:setSz} min={1} max={120} unit="px"/>
+          <ISL label="Opacity" val={Math.round((tool==="eraser"?eraserOpac:opac)*100)} set={v=>tool==="eraser"?setEraserOpac(v/100):setOpac(v/100)} min={1} max={100} unit="%"/>
+          <ISL label="Stabilizer" val={stab} set={setStab} min={0} max={20}/>
+        </div>
+      </div>)}
+
+      {/* Color Panel with HSV wheel */}
+      {panel==="color"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",left:0,right:0,bottom:0,maxHeight:"65vh",background:TH.brushPanel,borderRadius:"16px 16px 0 0",display:"flex",flexDirection:"column",boxShadow:"0 -4px 20px rgba(0,0,0,.3)"}}>
+        <div style={{width:36,height:4,borderRadius:2,background:"#999",margin:"8px auto 4px"}}/>
+        <div style={{flex:1,overflowY:"auto",padding:"6px 14px 14px"}}>
+          {/* HSV Square */}
+          <div style={{position:"relative",width:"100%",aspectRatio:"1",borderRadius:8,cursor:"crosshair",marginBottom:10,
+            background:`linear-gradient(to top,#000,transparent),linear-gradient(to right,#fff,hsl(${hsv[0]},100%,50%))`,border:"1px solid #999"}}
+            onPointerDown={e=>{const r=e.currentTarget.getBoundingClientRect();const update=ev=>{const x=clamp((ev.clientX-r.left)/r.width,0,1);const y=clamp((ev.clientY-r.top)/r.height,0,1);setColHSV(hsv[0],x,1-y)};update(e);const m=ev=>update(ev);const u=()=>{document.removeEventListener("pointermove",m);document.removeEventListener("pointerup",u)};document.addEventListener("pointermove",m);document.addEventListener("pointerup",u)}}>
+            <div style={{position:"absolute",left:`${hsv[1]*100}%`,top:`${(1-hsv[2])*100}%`,width:14,height:14,borderRadius:7,border:"2px solid #fff",boxShadow:"0 0 4px rgba(0,0,0,.6)",transform:"translate(-7px,-7px)",pointerEvents:"none"}}/>
+          </div>
+          {/* Hue bar */}
+          <div style={{position:"relative",width:"100%",height:22,borderRadius:11,marginBottom:10,
+            background:"linear-gradient(to right,#f00,#ff0,#0f0,#0ff,#00f,#f0f,#f00)",border:"1px solid #999",cursor:"pointer"}}
+            onPointerDown={e=>{const r=e.currentTarget.getBoundingClientRect();const update=ev=>{const x=clamp((ev.clientX-r.left)/r.width,0,1);setColHSV(x*360,hsv[1],hsv[2])};update(e);const m=ev=>update(ev);const u=()=>{document.removeEventListener("pointermove",m);document.removeEventListener("pointerup",u)};document.addEventListener("pointermove",m);document.addEventListener("pointerup",u)}}>
+            <div style={{position:"absolute",left:`${hsv[0]/360*100}%`,top:-1,width:8,height:24,borderRadius:4,border:"2px solid #fff",boxShadow:"0 0 4px rgba(0,0,0,.5)",transform:"translateX(-4px)",pointerEvents:"none"}}/>
+          </div>
+          {/* Preview + hex */}
+          <div style={{display:"flex",gap:8,marginBottom:10,alignItems:"center"}}>
+            <div style={{width:36,height:36,borderRadius:8,background:col,border:"1px solid #999",flexShrink:0}}/>
+            <input type="text" value={col} onChange={e=>{if(/^#[0-9a-fA-F]{6}$/.test(e.target.value)){setCol(e.target.value);const[r,g,b]=hexRgb(e.target.value);setHsv(rgbToHsv(r,g,b))}}}
+              style={{flex:1,padding:"6px 8px",borderRadius:6,border:"1px solid #aaa",background:"#fff",color:"#333",fontSize:12,fontFamily:"monospace"}}/>
+          </div>
+          {/* Palette */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(8,1fr)",gap:3}}>
+            {PALETTE.map((c,i)=>(<button key={i} onClick={()=>{setCol(c);const[r,g,b]=hexRgb(c);setHsv(rgbToHsv(r,g,b))}} style={{aspectRatio:"1",borderRadius:4,border:col===c?"2px solid #333":"1px solid #bbb",background:c,cursor:"pointer",transform:col===c?"scale(1.12)":"none",transition:"transform .1s"}}/>))}
+          </div>
+          {/* Color History */}
+          {colorHistory.length>1&&(<div style={{marginTop:10}}>
+            <div style={{fontSize:10,color:TH.brushDim,marginBottom:4}}>Recent Colors</div>
+            <div style={{display:"flex",gap:3,flexWrap:"wrap"}}>
+              {colorHistory.map((c,i)=>(<button key={i} onClick={()=>{setCol(c);const[r,g,b]=hexRgb(c);setHsv(rgbToHsv(r,g,b))}} style={{width:24,height:24,borderRadius:4,border:col===c?"2px solid #333":"1px solid #bbb",background:c,cursor:"pointer"}}/>))}
+            </div>
+          </div>)}
+        </div>
+      </div>)}
+
+      {/* Layer Panel */}
+      {panel==="layers"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:0,top:0,bottom:0,width:260,background:TH.panelBg,borderLeft:`1px solid ${TH.panelBorder}`,display:"flex",flexDirection:"column",boxShadow:"-4px 0 20px rgba(0,0,0,.4)"}}>
+        <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",padding:"9px 10px",borderBottom:`1px solid ${TH.panelBorder}`}}>
+          <span style={{fontSize:13,fontWeight:600,color:TH.panelText}}>Layer</span>
+          <button onClick={closeP} style={{background:"none",border:"none",color:TH.panelDim,cursor:"pointer"}}><Icon name="x" size={16} color={TH.panelDim}/></button>
+        </div>
+        <div style={{display:"flex",gap:3,padding:"6px 8px",borderBottom:`1px solid ${TH.panelBorder}`}}>
+          <button onClick={addLayer} style={{flex:1,padding:"5px 0",borderRadius:5,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,cursor:"pointer",fontSize:10,fontFamily:"inherit"}}>+</button>
+          <button onClick={delLayer} style={{flex:1,padding:"5px 0",borderRadius:5,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,cursor:"pointer",fontSize:10,fontFamily:"inherit"}}>Del</button>
+          <button onClick={mergeDown} style={{flex:1,padding:"5px 0",borderRadius:5,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,cursor:"pointer",fontSize:10,fontFamily:"inherit"}}>Merge</button>
+          <button onClick={flattenAll} style={{flex:1,padding:"5px 0",borderRadius:5,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,cursor:"pointer",fontSize:10,fontFamily:"inherit"}}>Flat</button>
+        </div>
+        <div style={{padding:"4px 8px",borderBottom:`1px solid ${TH.panelBorder}`}}>
+          <button onClick={importAsLayer} style={{width:"100%",padding:"5px 0",borderRadius:5,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.accent,cursor:"pointer",fontSize:10,fontFamily:"inherit"}}>Import Image as Layer</button>
+        </div>
+        <div style={{flex:1,overflowY:"auto",padding:6}}>
+          {[...curLayers].reverse().map((l,ri)=>{const idx=curLayers.length-1-ri;return(
+            <div key={l.id} onClick={()=>setLi(idx)} style={{display:"flex",alignItems:"center",gap:6,padding:6,marginBottom:3,borderRadius:6,
+              border:idx===li?`1.5px solid ${TH.accent}`:`1px solid ${TH.panelBorder}`,background:idx===li?"rgba(91,196,240,0.1)":"transparent",cursor:"pointer"}}>
+              <div style={{width:32,height:22,borderRadius:3,overflow:"hidden",background:"repeating-conic-gradient(#555 0% 25%,#777 0% 50%) 0 0/8px 8px",flexShrink:0}}>
+                <canvas ref={el=>{if(el){el.width=32;el.height=22;el.getContext("2d").drawImage(l.c,0,0,32,22)}}} style={{width:32,height:22,display:"block"}}/>
+              </div>
+              <div style={{flex:1,minWidth:0}}>
+                <div style={{fontSize:10,fontWeight:500,color:TH.panelText}}>{l.name}</div>
+                <div style={{fontSize:8,color:TH.panelDim}}>{Math.round(l.op*100)}% {l.blend}</div>
+              </div>
+              <div style={{display:"flex",flexDirection:"column",gap:1}}>
+                <button onClick={e=>{e.stopPropagation();moveLayer(idx,1)}} style={{background:"none",border:"none",color:TH.panelDim,cursor:"pointer",padding:0,fontSize:10,lineHeight:1}}>▲</button>
+                <button onClick={e=>{e.stopPropagation();moveLayer(idx,-1)}} style={{background:"none",border:"none",color:TH.panelDim,cursor:"pointer",padding:0,fontSize:10,lineHeight:1}}>▼</button>
+              </div>
+              <button onClick={e=>{e.stopPropagation();toggleVis(idx)}} style={{background:"none",border:"none",cursor:"pointer",padding:2}}>
+                <Icon name={l.vis?"eye":"eyeOff"} size={14} color={l.vis?TH.panelText:TH.panelDim}/></button>
+            </div>)})}
+        </div>
+        {/* Selected layer settings */}
+        {curLayers[li]&&(<div style={{padding:"8px 10px",borderTop:`1px solid ${TH.panelBorder}`}}>
+          <div style={{fontSize:10,color:TH.panelDim,marginBottom:4}}>Opacity</div>
+          <input type="range" min={0} max={100} value={Math.round(curLayers[li].op*100)} onChange={e=>setLayerOp(li,e.target.value/100)} style={{width:"100%",accentColor:TH.accent,height:4}}/>
+          <div style={{fontSize:10,color:TH.panelDim,marginTop:6,marginBottom:2}}>Blend</div>
+          <select value={curLayers[li].blend} onChange={e=>setLayerBlend(li,e.target.value)} style={{width:"100%",padding:"5px",borderRadius:5,border:`1px solid ${TH.panelBorder}`,background:"#555",color:TH.panelText,fontSize:11}}>
+            {BLENDS.map(m=><option key={m} value={m}>{m}</option>)}
+          </select>
+        </div>)}
+      </div>)}
+
+      {/* Anim Panel */}
+      {panel==="anim"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",left:0,right:0,bottom:0,maxHeight:"50vh",background:TH.panelBg,borderRadius:"16px 16px 0 0",display:"flex",flexDirection:"column",boxShadow:"0 -4px 20px rgba(0,0,0,.3)"}}>
+        <div style={{width:36,height:4,borderRadius:2,background:"#666",margin:"8px auto 4px"}}/>
+        <div style={{padding:"6px 14px 14px",display:"flex",flexDirection:"column",gap:8}}>
+          <span style={{fontSize:13,fontWeight:600,color:TH.panelText}}>Animation</span>
+          <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText}}>
+            <span style={{width:50}}>FPS</span>
+            <input type="range" min={1} max={60} value={fps} onChange={e=>setFps(+e.target.value)} style={{flex:1,accentColor:TH.accent}}/>
+            <span style={{width:20,textAlign:"right",fontSize:10,color:TH.panelDim}}>{fps}</span>
+          </div>
+          <label style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText,cursor:"pointer"}}>
+            <input type="checkbox" checked={onion} onChange={e=>setOnion(e.target.checked)} style={{accentColor:TH.accent}}/> Onion Skin
+          </label>
+          {onion&&<>
+            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText}}><span style={{width:50}}>Frames</span><input type="range" min={1} max={6} value={onionN} onChange={e=>setOnionN(+e.target.value)} style={{flex:1,accentColor:TH.accent}}/><span style={{width:16,fontSize:10,color:TH.panelDim}}>{onionN}</span></div>
+            <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText}}><span style={{width:50}}>Opacity</span><input type="range" min={5} max={80} value={Math.round(onionA*100)} onChange={e=>setOnionA(e.target.value/100)} style={{flex:1,accentColor:TH.accent}}/><span style={{width:24,fontSize:10,color:TH.panelDim}}>{Math.round(onionA*100)}%</span></div>
+          </>}
+          <div style={{fontSize:11,fontWeight:600,color:TH.panelText,marginTop:2}}>Symmetry</div>
+          <div style={{display:"flex",gap:3}}>{[["off","OFF"],["v","V"],["h","H"],["4","Quad"]].map(([k,l])=>(<button key={k} onClick={()=>setSym(k)} style={{flex:1,padding:"6px 0",borderRadius:5,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:sym===k?`1.5px solid ${TH.accent}`:`1px solid ${TH.panelBorder}`,background:sym===k?"rgba(91,196,240,0.15)":"transparent",color:sym===k?TH.accent:TH.panelDim}}>{l}</button>))}</div>
+          <button onClick={genTween} style={{width:"100%",padding:"10px 0",borderRadius:8,border:"none",background:TH.accent,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Tween (3 frames)</button>
+          <button onClick={exportGif} disabled={exporting} style={{width:"100%",padding:"10px 0",borderRadius:8,border:"none",background:exporting?"#666":"#27ae60",color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>{exporting?"Exporting...":"Export GIF"}</button>
+          <button onClick={exportPng} style={{width:"100%",padding:"10px 0",borderRadius:8,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,fontSize:12,cursor:"pointer",fontFamily:"inherit"}}>Export PNG</button>
+          <div style={{borderTop:`1px solid ${TH.panelBorder}`,paddingTop:8,marginTop:4}}>
+            <label style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText,cursor:"pointer"}}>
+              <input type="checkbox" checked={showGrid} onChange={e=>setShowGrid(e.target.checked)} style={{accentColor:TH.accent}}/> Show Grid
+            </label>
+            {showGrid&&<div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText,marginTop:4}}><span style={{width:50}}>Size</span><input type="range" min={8} max={128} value={gridSize} onChange={e=>setGridSize(+e.target.value)} style={{flex:1,accentColor:TH.accent}}/><span style={{width:24,fontSize:10,color:TH.panelDim}}>{gridSize}</span></div>}
+          </div>
+        </div>
+      </div>)}
+
+      {/* Ruler Panel */}
+      {panel==="ruler"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:10,top:40,background:TH.panelBg,border:`1px solid ${TH.panelBorder}`,borderRadius:10,padding:8,boxShadow:"0 4px 16px rgba(0,0,0,.4)"}}>
+        <div style={{fontSize:11,fontWeight:600,color:TH.panelText,marginBottom:6}}>Ruler</div>
+        <div style={{display:"flex",flexDirection:"column",gap:3}}>
+          {[["off","OFF"],["line","Line"],["circle","Circle"],["ellipse","Ellipse"]].map(([k,l])=>(<button key={k} onClick={()=>{setRuler(k);if(k==="off")closeP()}} style={{padding:"7px 16px",borderRadius:6,border:ruler===k?`1.5px solid ${TH.accent}`:`1px solid ${TH.panelBorder}`,background:ruler===k?"rgba(91,196,240,0.15)":"transparent",color:ruler===k?TH.accent:TH.panelText,fontSize:11,cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>{l}</button>))}
+        </div>
+        {refImg&&<div style={{marginTop:8,borderTop:`1px solid ${TH.panelBorder}`,paddingTop:8}}>
+          <div style={{fontSize:10,color:TH.panelDim,marginBottom:4}}>Reference Opacity</div>
+          <input type="range" min={5} max={100} value={Math.round(refOp*100)} onChange={e=>setRefOp(e.target.value/100)} style={{width:"100%",accentColor:TH.accent}}/>
+          <button onClick={()=>{setRefImg(null);sched()}} style={{marginTop:4,padding:"4px 10px",borderRadius:4,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.accentRed,fontSize:10,cursor:"pointer",fontFamily:"inherit"}}>Remove Reference</button>
+        </div>}
+      </div>)}
+
+      {/* Flip panel */}
+      {panel==="flip"&&(<div onClick={e=>e.stopPropagation()} style={{position:"absolute",right:10,top:40,background:TH.panelBg,border:`1px solid ${TH.panelBorder}`,borderRadius:10,padding:8,boxShadow:"0 4px 16px rgba(0,0,0,.4)"}}>
+        <button onClick={()=>{const c=curCanvas();if(!c)return;pushUndo();const ctx=c.getContext("2d");const tmp=document.createElement("canvas");tmp.width=W;tmp.height=H;tmp.getContext("2d").drawImage(c,0,0);ctx.clearRect(0,0,W,H);ctx.save();ctx.translate(W,0);ctx.scale(-1,1);ctx.drawImage(tmp,0,0);ctx.restore();sched();closeP()}} style={{display:"block",width:"100%",padding:"8px 16px",borderRadius:6,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,fontSize:11,cursor:"pointer",fontFamily:"inherit",marginBottom:3,textAlign:"left"}}>Flip Horizontal</button>
+        <button onClick={()=>{const c=curCanvas();if(!c)return;pushUndo();const ctx=c.getContext("2d");const tmp=document.createElement("canvas");tmp.width=W;tmp.height=H;tmp.getContext("2d").drawImage(c,0,0);ctx.clearRect(0,0,W,H);ctx.save();ctx.translate(0,H);ctx.scale(1,-1);ctx.drawImage(tmp,0,0);ctx.restore();sched();closeP()}} style={{display:"block",width:"100%",padding:"8px 16px",borderRadius:6,border:`1px solid ${TH.panelBorder}`,background:"transparent",color:TH.panelText,fontSize:11,cursor:"pointer",fontFamily:"inherit",textAlign:"left"}}>Flip Vertical</button>
+      </div>)}
+    </div>)}
+  </div>
+
+  {/* ═══ TEXT INPUT MODAL ═══ */}
+  {textMode&&textPos&&(<div onClick={()=>setTextMode(false)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"center",justifyContent:"center",zIndex:50}}>
+    <div onClick={e=>e.stopPropagation()} style={{width:300,background:TH.brushPanel,borderRadius:14,padding:16,boxShadow:"0 8px 30px rgba(0,0,0,.4)"}}>
+      <div style={{fontSize:13,fontWeight:600,color:TH.brushText,marginBottom:8}}>Add Text</div>
+      <input type="text" value={textInput} onChange={e=>setTextInput(e.target.value)} placeholder="Type here..." autoFocus
+        style={{width:"100%",padding:"10px",borderRadius:8,border:"1px solid #aaa",background:"#fff",color:"#333",fontSize:14,fontFamily:"inherit",boxSizing:"border-box",marginBottom:8}}/>
+      <div style={{display:"flex",alignItems:"center",gap:6,marginBottom:10}}>
+        <span style={{fontSize:11,color:TH.brushDim}}>Size</span>
+        <input type="range" min={8} max={120} value={textSize} onChange={e=>setTextSize(+e.target.value)} style={{flex:1,accentColor:TH.sliderTrack}}/>
+        <span style={{fontSize:11,color:TH.brushDim}}>{textSize}px</span>
+      </div>
+      <div style={{display:"flex",gap:6}}>
+        <button onClick={()=>setTextMode(false)} style={{flex:1,padding:"9px 0",borderRadius:8,border:"1px solid #aaa",background:"transparent",color:TH.brushText,fontSize:13,cursor:"pointer",fontFamily:"inherit"}}>Cancel</button>
+        <button onClick={()=>{
+          if(!textInput.trim())return;
+          const c=curCanvas();if(!c)return;pushUndo();
+          const ctx=c.getContext("2d");ctx.save();ctx.fillStyle=col;ctx.globalAlpha=opac;
+          ctx.font=`${textSize}px 'DM Sans', sans-serif`;ctx.textBaseline="top";
+          ctx.fillText(textInput,textPos.x,textPos.y);ctx.restore();
+          setTextMode(false);setTextInput("");sched();
+        }} style={{flex:1,padding:"9px 0",borderRadius:8,border:"none",background:TH.accent,color:"#fff",fontSize:13,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Place</button>
+      </div>
+    </div>
+  </div>)}
+
+  {/* ═══ LASSO DESELECT ═══ */}
+  {hasLasso&&(<div style={{position:"absolute",top:44,left:"50%",transform:"translateX(-50%)",zIndex:30,display:"flex",gap:6}}>
+    <button onClick={()=>{
+      const c=curCanvas();if(c&&lassoData.current){
+        const ctx=c.getContext("2d");ctx.drawImage(lassoData.current,lassoOffset.current.x,lassoOffset.current.y)}
+      setHasLasso(false);lassoData.current=null;lassoPath.current=[];lassoOffset.current={x:0,y:0};sched();
+    }} style={{padding:"6px 14px",borderRadius:8,border:"none",background:TH.accent,color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}>Deselect</button>
+    <button onClick={()=>{
+      setHasLasso(false);lassoData.current=null;lassoPath.current=[];lassoOffset.current={x:0,y:0};sched();
+    }} style={{padding:"6px 14px",borderRadius:8,border:"none",background:"#c0392b",color:"#fff",fontSize:11,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}>Delete</button>
+  </div>)}
+
+  {/* ═══ RECT SELECT CONTROLS ═══ */}
+  {rectSelData&&(<div style={{position:"absolute",top:44,left:"50%",transform:"translateX(-50%)",zIndex:30,display:"flex",gap:5}}>
+    <button onClick={()=>{
+      // Commit - place selection back
+      const c=curCanvas();if(c){const ctx=c.getContext("2d");
+        ctx.drawImage(rectSelData,rectSelect.x+rectSelOffset.x,rectSelect.y+rectSelOffset.y)}
+      setRectSelect(null);setRectSelData(null);setRectSelOffset({x:0,y:0});sched();
+    }} style={{padding:"6px 12px",borderRadius:8,border:"none",background:TH.accent,color:"#fff",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}>Place</button>
+    <button onClick={()=>{
+      setClipboard(rectSelData);
+    }} style={{padding:"6px 12px",borderRadius:8,border:"none",background:"#8e44ad",color:"#fff",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}>Copy</button>
+    <button onClick={()=>{
+      setRectSelect(null);setRectSelData(null);setRectSelOffset({x:0,y:0});sched();
+    }} style={{padding:"6px 12px",borderRadius:8,border:"none",background:"#c0392b",color:"#fff",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}>Delete</button>
+    {clipboard&&<button onClick={pasteClipboard} style={{padding:"6px 12px",borderRadius:8,border:"none",background:"#27ae60",color:"#fff",fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",boxShadow:"0 2px 8px rgba(0,0,0,.3)"}}>Paste</button>}
+  </div>)}
+
+  {/* ═══ THICKNESS BAR ═══ */}
+  <div style={{display:"flex",alignItems:"center",gap:5,padding:"5px 8px",background:"rgba(180,180,180,0.94)",borderTop:"1px solid #aaa",flexShrink:0,zIndex:10}}>
+    {/* Quick pen/eraser swap */}
+    <button onClick={()=>{
+      if(tool==="eraser"){setTool(prevTool.current||"brush")}
+      else{prevTool.current=tool;setTool("eraser")}
+    }} style={{width:32,height:32,borderRadius:8,border:"none",background:tool==="eraser"?"#e85d4a":"#666",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",flexShrink:0,touchAction:"manipulation"}}>
+      <Icon name={tool==="eraser"?"brush":"eraser"} size={16} color="#fff"/>
+    </button>
+
+    <span style={{fontSize:9,color:"#555",width:44,flexShrink:0,lineHeight:1.1}}>{tool==="eraser"?eraser.name:brush.name}</span>
+    <span style={{fontSize:10,color:"#333",width:32,textAlign:"right",fontVariantNumeric:"tabular-nums",fontWeight:700}}>{tool==="eraser"?eraserSz:sz}<span style={{fontSize:8,fontWeight:400}}>px</span></span>
+
+    <button onClick={()=>tool==="eraser"?setEraserSz(s=>Math.max(1,s-1)):setSz(s=>Math.max(1,s-1))} style={{width:28,height:28,borderRadius:14,border:"none",background:"#666",color:"#fff",fontSize:15,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0,flexShrink:0,touchAction:"manipulation"}}>−</button>
+
+    <input type="range" min={1} max={120}
+      value={tool==="eraser"?eraserSz:sz}
+      onChange={e=>tool==="eraser"?setEraserSz(+e.target.value):setSz(+e.target.value)}
+      style={{flex:1,height:28,accentColor:TH.sliderTrack,cursor:"pointer",touchAction:"manipulation",WebkitAppearance:"auto",margin:0}}/>
+
+    <button onClick={()=>tool==="eraser"?setEraserSz(s=>Math.min(120,s+1)):setSz(s=>Math.min(120,s+1))} style={{width:28,height:28,borderRadius:14,border:"none",background:"#666",color:"#fff",fontSize:15,fontWeight:700,display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer",padding:0,flexShrink:0,touchAction:"manipulation"}}>+</button>
+  </div>
+
+  {/* ═══ FRAME STRIP ═══ */}
+  <div style={{display:"flex",alignItems:"center",gap:4,padding:"4px 6px",background:"#333",borderTop:"1px solid #555",flexShrink:0,zIndex:10,overflowX:"auto",overflowY:"hidden",WebkitOverflowScrolling:"touch",minHeight:46}}>
+    {frames.map((f,i)=>(
+      <div key={f.id} onClick={()=>switchFrame(i)} style={{flexShrink:0,width:56,height:34,borderRadius:3,overflow:"hidden",cursor:"pointer",position:"relative",border:i===fi?`2px solid ${TH.accent}`:"2px solid #555",background:"#fff",touchAction:"manipulation"}}>
+        <img src={thumb(f,i)} alt="" style={{width:"100%",height:"100%",objectFit:"cover"}}/>
+        <div style={{position:"absolute",bottom:0,left:0,right:0,background:"rgba(0,0,0,.5)",fontSize:8,textAlign:"center",padding:"1px 0",color:i===fi?"#fff":"#999",fontWeight:600}}>{i+1}</div>
+      </div>))}
+    <button onClick={addFrame} style={{flexShrink:0,width:56,height:34,borderRadius:3,border:"2px dashed #666",background:"transparent",color:"#888",display:"flex",alignItems:"center",justifyContent:"center",cursor:"pointer"}}><Icon name="plus" size={14} color="#888"/></button>
+    <div style={{width:1,height:22,background:"#555",margin:"0 2px",flexShrink:0}}/>
+    <button onClick={dupFrame} style={{flexShrink:0,background:"none",border:"none",color:"#888",cursor:"pointer",padding:3}}><Icon name="copy" size={15} color="#888"/></button>
+    <button onClick={delFrame} style={{flexShrink:0,background:"none",border:"none",color:"#888",cursor:"pointer",padding:3}}><Icon name="trash" size={15} color="#888"/></button>
+    <button onClick={()=>setPlaying(p=>!p)} style={{flexShrink:0,background:"none",border:"none",cursor:"pointer",padding:3,marginLeft:"auto"}}>
+      <Icon name={playing?"pause":"play"} size={17} color={playing?TH.accent:"#888"}/></button>
+  </div>
+
+  {/* ═══ BOTTOM TOOLBAR ═══ */}
+  <div style={{display:"flex",alignItems:"center",justifyContent:"space-around",padding:"2px 0 max(env(safe-area-inset-bottom,4px),4px)",background:TH.bottomBar,borderTop:"1px solid #555",flexShrink:0,zIndex:10,minHeight:48}}>
+    {[
+      {id:"tools",icon:tool==="eraser"?"eraser":tool==="bucket"?"bucket":tool==="eyedropper"?"eyedropper":tool==="hand"?"hand":tool==="smudge"?"smudge":tool==="lasso"?"lasso":tool==="rectsel"?"crop":tool==="text"?"text":tool==="transform"?"move":"brush",label:"Tool"},
+      {id:"brush",icon:"pen",label:"Brush"},
+      {id:"color",label:"Color"},
+      {id:"layers",icon:"layers",label:String(curLayers.length)},
+      {id:"anim",icon:"onion",label:`${fps}fps`},
+      {id:"download",icon:"download",label:"Save",action:exportPng},
+      {id:"back",icon:"back",label:"Back",action:()=>onBack(frames)},
+    ].map(item=>(
+      <button key={item.id} onClick={e=>{e.stopPropagation();item.action?item.action():tp(item.id)}}
+        style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,background:"none",border:"none",cursor:"pointer",
+          padding:"4px 8px",fontFamily:"inherit",color:panel===item.id?TH.bottomIconActive:TH.bottomIcon,
+          minWidth:40,minHeight:40,touchAction:"manipulation",WebkitTapHighlightColor:"transparent"}}>
+        {item.id==="color"?(<div style={{width:22,height:22,borderRadius:6,background:col,border:panel==="color"?`2px solid ${TH.bottomIconActive}`:"1.5px solid #666"}}/>):(<Icon name={item.icon} size={20} color={panel===item.id?TH.bottomIconActive:TH.bottomIcon}/>)}
+        <span style={{fontSize:9,fontWeight:500,color:panel===item.id?TH.bottomIconActive:"#999"}}>{item.label}</span>
+      </button>))}
+  </div>
+</div>
+```
+
+);
+}
+
+ReactDOM.createRoot(document.getElementById(‘root’)).render(React.createElement(App));
+</script>
+
+</body>
+</html>
