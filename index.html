@@ -10,63 +10,98 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#0a0c14">
 <title>Kinetik</title>
-<link rel="manifest" href="data:application/json;base64,eyJuYW1lIjoiS2luZXRpayIsInNob3J0X25hbWUiOiJLaW5ldGlrIiwic3RhcnRfdXJsIjoiLiIsImRpc3BsYXkiOiJzdGFuZGFsb25lIiwiYmFja2dyb3VuZF9jb2xvciI6IiMwYTBjMTQiLCJ0aGVtZV9jb2xvciI6IiMwYTBjMTQifQ==">
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
-html,body,#root{width:100%;height:100%;overflow:hidden;background:#0a0c14;touch-action:none;-webkit-tap-highlight-color:transparent}
+html,body,#root{width:100%;height:100%;overflow:hidden;background:#0a0c14;-webkit-tap-highlight-color:transparent}
 body{font-family:'DM Sans',sans-serif;overscroll-behavior:none}
 input[type=range]{-webkit-appearance:auto}
+#error{display:none;position:fixed;inset:0;background:#1a0000;color:#ff6666;padding:20px;font-family:monospace;font-size:12px;overflow:auto;z-index:99999;white-space:pre-wrap;word-break:break-all}
+#loading{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0a0c14;color:#5bc4f0;font-family:'DM Sans',sans-serif;z-index:9999}
 </style>
 </head>
 <body>
 <div id="root"></div>
+<div id="error"></div>
+<div id="loading"><div style="font-size:24px;font-weight:700;margin-bottom:8px">Kinetik</div><div style="font-size:13px;color:#556">Loading...</div></div>
+
+<script>
+// Global error handler - shows errors visually
+window.onerror=function(msg,url,line,col,err){
+  var el=document.getElementById('error');
+  el.style.display='block';
+  el.textContent='ERROR: '+msg+'\nLine: '+line+'\nCol: '+col+'\n\n'+(err&&err.stack||'');
+  document.getElementById('loading').style.display='none';
+};
+window.addEventListener('unhandledrejection',function(e){
+  var el=document.getElementById('error');
+  el.style.display='block';
+  el.textContent='PROMISE ERROR: '+(e.reason&&e.reason.message||e.reason||'unknown')+'\n\n'+(e.reason&&e.reason.stack||'');
+});
+// Timeout - if still loading after 15s, Babel is hanging
+setTimeout(function(){
+  var l=document.getElementById('loading');
+  if(l&&l.style.display!=='none'){
+    l.innerHTML='<div style="font-size:18px;font-weight:700;margin-bottom:12px;color:#e85d4a">Taking too long</div><div style="font-size:12px;color:#888;max-width:280px;text-align:center">Babel is struggling to compile on this device. Try refreshing, or open on a computer.</div>';
+  }
+},15000);
+</script>
+
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-<script type="text/babel">
+
+<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.24.4/babel.min.js"></script>
+
+<script>
+// Verify React loaded
+if(typeof React==='undefined'){document.getElementById('error').style.display='block';document.getElementById('error').textContent='React failed to load. Check internet connection.';}
+if(typeof Babel==='undefined'){document.getElementById('error').style.display='block';document.getElementById('error').textContent='Babel failed to load. Check internet connection.';}
+</script>
+
+<script type="text/babel" data-presets="react">
 const {useState,useRef,useEffect,useCallback}=React;
 
 /* ═══ ICONS ═══ */
-const Icon = ({ name, size = 24, color = “currentColor” }) => {
-const d = {
-pen: <><path d="M3 21l1.5-4.5L17.5 3.5a2.12 2.12 0 013 3L7.5 19.5z" fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/><path d="M15 5.5l3 3" stroke={color} strokeWidth="1.8"/></>,
-brush: <><path d="M18.4 2.6a2.1 2.1 0 013 3L14 13l-4 1 1-4z" fill="none" stroke={color} strokeWidth="1.7"/><path d="M9 14.5c-2 0-4 1.5-5.5 3.5a1 1 0 00.5 1.5c2 .5 4-.5 5-2.5" fill="none" stroke={color} strokeWidth="1.7"/></>,
-eraser: <><path d="M7 21h10" stroke={color} strokeWidth="1.7" strokeLinecap="round"/><path d="M18 7l-9 9-4.5-.5L5 11l9-9z" fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round"/></>,
-bucket: <><path d="M16.5 9.4l-9-3.2a1 1 0 00-1.3.7L3.5 17.2a2 2 0 001.4 2.4l6.5 2.3a2 2 0 002.4-1.4l2.7-10.4" fill="none" stroke={color} strokeWidth="1.7"/><path d="M16 2c2 2 2 5 0 7" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round"/></>,
-eyedropper: <><path d="M20.7 4.7a2.4 2.4 0 00-3.4-3.4L14 4.6l4.4 4.4z" fill="none" stroke={color} strokeWidth="1.7"/><path d="M14 4.6L5.4 13.2a2 2 0 00-.5 1L3 21l6.8-1.9a2 2 0 001-.5L19.4 9" fill="none" stroke={color} strokeWidth="1.7"/></>,
-undo: <><path d="M3 10h12a5 5 0 010 10H12" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M7 6L3 10l4 4" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></>,
-redo: <><path d="M21 10H9a5 5 0 000 10h3" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M17 6l4 4-4 4" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></>,
-layers: <><path d="M12 2L2 7l10 5 10-5z" fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round"/><path d="M2 12l10 5 10-5" fill="none" stroke={color} strokeWidth="1.7"/><path d="M2 17l10 5 10-5" fill="none" stroke={color} strokeWidth="1.7"/></>,
-play: <polygon points="7,4 20,12 7,20" fill={color}/>,
-pause: <><rect x="6" y="4" width="3.5" height="16" rx="1" fill={color}/><rect x="14.5" y="4" width="3.5" height="16" rx="1" fill={color}/></>,
-plus: <path d="M12 5v14M5 12h14" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>,
-trash: <><path d="M4 7h16" stroke={color} strokeWidth="1.7" strokeLinecap="round"/><path d="M6 7v12a2 2 0 002 2h8a2 2 0 002-2V7" fill="none" stroke={color} strokeWidth="1.7"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" fill="none" stroke={color} strokeWidth="1.7"/></>,
-copy: <><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke={color} strokeWidth="1.7"/><path d="M5 15V5a2 2 0 012-2h10" fill="none" stroke={color} strokeWidth="1.7"/></>,
-eye: <><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" fill="none" stroke={color} strokeWidth="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.7"/></>,
-eyeOff: <><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-10-8-10-8a18.45 18.45 0 015.06-5.94" fill="none" stroke={color} strokeWidth="1.7"/><line x1="1" y1="1" x2="23" y2="23" stroke={color} strokeWidth="1.7"/></>,
-x: <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round"/>,
-back: <path d="M15 18l-6-6 6-6" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>,
-settings: <><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.7"/><path d="M12 1v3m0 16v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M1 12h3m16 0h3M4.2 19.8l2.1-2.1m11.4-11.4l2.1-2.1" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></>,
-download: <><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" fill="none" stroke={color} strokeWidth="1.7"/><path d="M7 10l5 5 5-5" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke={color} strokeWidth="2"/></>,
-image: <><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke={color} strokeWidth="1.7"/><circle cx="8.5" cy="8.5" r="1.5" fill={color}/><path d="M21 15l-5-5L5 21" fill="none" stroke={color} strokeWidth="1.7"/></>,
-folder: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" fill="none" stroke={color} strokeWidth="1.7"/>,
-onion: <><ellipse cx="12" cy="14" rx="8" ry="7" fill="none" stroke={color} strokeWidth="1.4" opacity=".35"/><ellipse cx="10" cy="14" rx="6" ry="6" fill="none" stroke={color} strokeWidth="1.4" opacity=".6"/><ellipse cx="14" cy="14" rx="6" ry="6" fill="none" stroke={color} strokeWidth="1.4" opacity=".6"/></>,
-hand: <path d="M18 11V5.5a1.5 1.5 0 00-3 0V11m0-5.5a1.5 1.5 0 00-3 0V11m0-4.5a1.5 1.5 0 00-3 0V11m0-2.5a1.5 1.5 0 00-3 0V15a6 6 0 006 6h2a6 6 0 006-6V8.5a1.5 1.5 0 00-3 0V11" fill="none" stroke={color} strokeWidth="1.5"/>,
-smudge: <path d="M5 19c2-3 4-7 8-9s6-1 7 1-1 5-4 7-5 2-7 2-4-1-4-1" fill="none" stroke={color} strokeWidth="1.8"/>,
-lasso: <><path d="M17 3.34A9 9 0 117 20.66" fill="none" stroke={color} strokeWidth="1.7"/><path d="M12 22v-4m-3 2h6" stroke={color} strokeWidth="1.7" strokeLinecap="round"/></>,
-text: <><path d="M6 4h12" stroke={color} strokeWidth="2.2" strokeLinecap="round"/><path d="M12 4v16" stroke={color} strokeWidth="2"/><path d="M8 20h8" stroke={color} strokeWidth="2" strokeLinecap="round"/></>,
-transform: <><rect x="4" y="4" width="16" height="16" rx="1" fill="none" stroke={color} strokeWidth="1.5" strokeDasharray="3 2"/><circle cx="4" cy="4" r="2" fill={color}/><circle cx="20" cy="4" r="2" fill={color}/><circle cx="4" cy="20" r="2" fill={color}/><circle cx="20" cy="20" r="2" fill={color}/></>,
-symmetry: <><line x1="12" y1="3" x2="12" y2="21" stroke={color} strokeWidth="1.5" strokeDasharray="3 2"/><path d="M8 8L5 12l3 4M16 8l3 4-3 4" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></>,
-ruler: <><rect x="2" y="6" width="20" height="12" rx="1" fill="none" stroke={color} strokeWidth="1.5"/><path d="M6 6v4m4-4v3m4-3v4m4-4v3" stroke={color} strokeWidth="1.3"/></>,
-flip: <><path d="M12 3v18" stroke={color} strokeWidth="1.5" strokeDasharray="2 2"/><path d="M4 6l4 6-4 6" fill="none" stroke={color} strokeWidth="1.7"/><path d="M20 6l-4 6 4 6" fill="none" stroke={color} strokeWidth="1.7"/></>,
-move: <><path d="M12 2l3 3h-2v4h4v-2l3 3-3 3v-2h-4v4h2l-3 3-3-3h2v-4H7v2l-3-3 3-3v2h4V5H9z" fill={color}/></>,
-crop: <><path d="M6 2v16h16" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M18 22V6H2" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/></>,
-ref: <><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke={color} strokeWidth="1.5"/><path d="M2 14l5-5 3 3 4-4 8 8" fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round"/><circle cx="8" cy="9" r="2" fill="none" stroke={color} strokeWidth="1.5"/></>,
-line: <line x1="4" y1="20" x2="20" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round"/>,
-circle: <circle cx="12" cy="12" r="8" fill="none" stroke={color} strokeWidth="2"/>,
-};
-return <svg width={size} height={size} viewBox=“0 0 24 24” style={{flexShrink:0,display:“block”}}>{d[name]}</svg>;
+const Icon = ({ name, size = 24, color = "currentColor" }) => {
+  const d = {
+    pen: <React.Fragment><path d="M3 21l1.5-4.5L17.5 3.5a2.12 2.12 0 013 3L7.5 19.5z" fill="none" stroke={color} strokeWidth="1.8" strokeLinejoin="round"/><path d="M15 5.5l3 3" stroke={color} strokeWidth="1.8"/></React.Fragment>,
+    brush: <React.Fragment><path d="M18.4 2.6a2.1 2.1 0 013 3L14 13l-4 1 1-4z" fill="none" stroke={color} strokeWidth="1.7"/><path d="M9 14.5c-2 0-4 1.5-5.5 3.5a1 1 0 00.5 1.5c2 .5 4-.5 5-2.5" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    eraser: <React.Fragment><path d="M7 21h10" stroke={color} strokeWidth="1.7" strokeLinecap="round"/><path d="M18 7l-9 9-4.5-.5L5 11l9-9z" fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round"/></React.Fragment>,
+    bucket: <React.Fragment><path d="M16.5 9.4l-9-3.2a1 1 0 00-1.3.7L3.5 17.2a2 2 0 001.4 2.4l6.5 2.3a2 2 0 002.4-1.4l2.7-10.4" fill="none" stroke={color} strokeWidth="1.7"/><path d="M16 2c2 2 2 5 0 7" fill="none" stroke={color} strokeWidth="1.7" strokeLinecap="round"/></React.Fragment>,
+    eyedropper: <React.Fragment><path d="M20.7 4.7a2.4 2.4 0 00-3.4-3.4L14 4.6l4.4 4.4z" fill="none" stroke={color} strokeWidth="1.7"/><path d="M14 4.6L5.4 13.2a2 2 0 00-.5 1L3 21l6.8-1.9a2 2 0 001-.5L19.4 9" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    undo: <React.Fragment><path d="M3 10h12a5 5 0 010 10H12" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M7 6L3 10l4 4" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></React.Fragment>,
+    redo: <React.Fragment><path d="M21 10H9a5 5 0 000 10h3" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M17 6l4 4-4 4" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/></React.Fragment>,
+    layers: <React.Fragment><path d="M12 2L2 7l10 5 10-5z" fill="none" stroke={color} strokeWidth="1.7" strokeLinejoin="round"/><path d="M2 12l10 5 10-5" fill="none" stroke={color} strokeWidth="1.7"/><path d="M2 17l10 5 10-5" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    play: <polygon points="7,4 20,12 7,20" fill={color}/>,
+    pause: <React.Fragment><rect x="6" y="4" width="3.5" height="16" rx="1" fill={color}/><rect x="14.5" y="4" width="3.5" height="16" rx="1" fill={color}/></React.Fragment>,
+    plus: <path d="M12 5v14M5 12h14" stroke={color} strokeWidth="2.5" strokeLinecap="round"/>,
+    trash: <React.Fragment><path d="M4 7h16" stroke={color} strokeWidth="1.7" strokeLinecap="round"/><path d="M6 7v12a2 2 0 002 2h8a2 2 0 002-2V7" fill="none" stroke={color} strokeWidth="1.7"/><path d="M9 7V5a2 2 0 012-2h2a2 2 0 012 2v2" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    copy: <React.Fragment><rect x="9" y="9" width="11" height="11" rx="2" fill="none" stroke={color} strokeWidth="1.7"/><path d="M5 15V5a2 2 0 012-2h10" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    eye: <React.Fragment><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7z" fill="none" stroke={color} strokeWidth="1.7"/><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    eyeOff: <React.Fragment><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-10-8-10-8a18.45 18.45 0 015.06-5.94" fill="none" stroke={color} strokeWidth="1.7"/><line x1="1" y1="1" x2="23" y2="23" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    x: <path d="M18 6L6 18M6 6l12 12" stroke={color} strokeWidth="2" strokeLinecap="round"/>,
+    back: <path d="M15 18l-6-6 6-6" fill="none" stroke={color} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>,
+    settings: <React.Fragment><circle cx="12" cy="12" r="3" fill="none" stroke={color} strokeWidth="1.7"/><path d="M12 1v3m0 16v3M4.2 4.2l2.1 2.1m11.4 11.4l2.1 2.1M1 12h3m16 0h3M4.2 19.8l2.1-2.1m11.4-11.4l2.1-2.1" stroke={color} strokeWidth="1.5" strokeLinecap="round"/></React.Fragment>,
+    download: <React.Fragment><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" fill="none" stroke={color} strokeWidth="1.7"/><path d="M7 10l5 5 5-5" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/><line x1="12" y1="3" x2="12" y2="15" stroke={color} strokeWidth="2"/></React.Fragment>,
+    image: <React.Fragment><rect x="3" y="3" width="18" height="18" rx="2" fill="none" stroke={color} strokeWidth="1.7"/><circle cx="8.5" cy="8.5" r="1.5" fill={color}/><path d="M21 15l-5-5L5 21" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    folder: <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z" fill="none" stroke={color} strokeWidth="1.7"/>,
+    onion: <React.Fragment><ellipse cx="12" cy="14" rx="8" ry="7" fill="none" stroke={color} strokeWidth="1.4" opacity=".35"/><ellipse cx="10" cy="14" rx="6" ry="6" fill="none" stroke={color} strokeWidth="1.4" opacity=".6"/><ellipse cx="14" cy="14" rx="6" ry="6" fill="none" stroke={color} strokeWidth="1.4" opacity=".6"/></React.Fragment>,
+    hand: <path d="M18 11V5.5a1.5 1.5 0 00-3 0V11m0-5.5a1.5 1.5 0 00-3 0V11m0-4.5a1.5 1.5 0 00-3 0V11m0-2.5a1.5 1.5 0 00-3 0V15a6 6 0 006 6h2a6 6 0 006-6V8.5a1.5 1.5 0 00-3 0V11" fill="none" stroke={color} strokeWidth="1.5"/>,
+    smudge: <path d="M5 19c2-3 4-7 8-9s6-1 7 1-1 5-4 7-5 2-7 2-4-1-4-1" fill="none" stroke={color} strokeWidth="1.8"/>,
+    lasso: <React.Fragment><path d="M17 3.34A9 9 0 117 20.66" fill="none" stroke={color} strokeWidth="1.7"/><path d="M12 22v-4m-3 2h6" stroke={color} strokeWidth="1.7" strokeLinecap="round"/></React.Fragment>,
+    text: <React.Fragment><path d="M6 4h12" stroke={color} strokeWidth="2.2" strokeLinecap="round"/><path d="M12 4v16" stroke={color} strokeWidth="2"/><path d="M8 20h8" stroke={color} strokeWidth="2" strokeLinecap="round"/></React.Fragment>,
+    transform: <React.Fragment><rect x="4" y="4" width="16" height="16" rx="1" fill="none" stroke={color} strokeWidth="1.5" strokeDasharray="3 2"/><circle cx="4" cy="4" r="2" fill={color}/><circle cx="20" cy="4" r="2" fill={color}/><circle cx="4" cy="20" r="2" fill={color}/><circle cx="20" cy="20" r="2" fill={color}/></React.Fragment>,
+    symmetry: <React.Fragment><line x1="12" y1="3" x2="12" y2="21" stroke={color} strokeWidth="1.5" strokeDasharray="3 2"/><path d="M8 8L5 12l3 4M16 8l3 4-3 4" fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></React.Fragment>,
+    ruler: <React.Fragment><rect x="2" y="6" width="20" height="12" rx="1" fill="none" stroke={color} strokeWidth="1.5"/><path d="M6 6v4m4-4v3m4-3v4m4-4v3" stroke={color} strokeWidth="1.3"/></React.Fragment>,
+    flip: <React.Fragment><path d="M12 3v18" stroke={color} strokeWidth="1.5" strokeDasharray="2 2"/><path d="M4 6l4 6-4 6" fill="none" stroke={color} strokeWidth="1.7"/><path d="M20 6l-4 6 4 6" fill="none" stroke={color} strokeWidth="1.7"/></React.Fragment>,
+    move: <React.Fragment><path d="M12 2l3 3h-2v4h4v-2l3 3-3 3v-2h-4v4h2l-3 3-3-3h2v-4H7v2l-3-3 3-3v2h4V5H9z" fill={color}/></React.Fragment>,
+    crop: <React.Fragment><path d="M6 2v16h16" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/><path d="M18 22V6H2" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round"/></React.Fragment>,
+    ref: <React.Fragment><rect x="2" y="4" width="20" height="16" rx="2" fill="none" stroke={color} strokeWidth="1.5"/><path d="M2 14l5-5 3 3 4-4 8 8" fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round"/><circle cx="8" cy="9" r="2" fill="none" stroke={color} strokeWidth="1.5"/></React.Fragment>,
+    line: <line x1="4" y1="20" x2="20" y2="4" stroke={color} strokeWidth="2" strokeLinecap="round"/>,
+    circle: <circle cx="12" cy="12" r="8" fill="none" stroke={color} strokeWidth="2"/>,
+  };
+  return <svg width={size} height={size} viewBox="0 0 24 24" style={{flexShrink:0,display:"block"}}>{d[name]}</svg>;
 };
 
 /* ═══ UTILS ═══ */
@@ -79,107 +114,111 @@ function hsvToRgb(h,s,v){h=((h%360)+360)%360;s=clamp(s,0,1);v=clamp(v,0,1);const
 function rgbToHsv(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),d=mx-mn;let h=0;if(d){if(mx===r)h=60*((g-b)/d%6);else if(mx===g)h=60*((b-r)/d+2);else h=60*((r-g)/d+4)}if(h<0)h+=360;return[h,mx?d/mx:0,mx];}
 
 const BRUSHES = [
-{id:“pen”,name:“Pen”,hard:1,sp:2,bop:1,psz:true,pop:false,sh:“r”},
-{id:“pencil”,name:“Pencil”,hard:.65,sp:1,bop:.8,psz:true,pop:true,sh:“r”},
-{id:“ink”,name:“Ink”,hard:1,sp:1,bop:1,psz:true,pop:false,sh:“r”},
-{id:“dip”,name:“Dip Pen”,hard:1,sp:1,bop:1,psz:true,pop:false,sh:“c”},
-{id:“marker”,name:“Marker”,hard:.9,sp:3,bop:.65,psz:false,pop:true,sh:“r”},
-{id:“soft”,name:“Soft Brush”,hard:.15,sp:2,bop:.4,psz:true,pop:true,sh:“r”},
-{id:“airbrush”,name:“Airbrush”,hard:.03,sp:1,bop:.12,psz:true,pop:true,sh:“r”},
-{id:“flat”,name:“Flat Brush”,hard:.85,sp:2,bop:.85,psz:true,pop:false,sh:“f”},
-{id:“crayon”,name:“Crayon”,hard:.5,sp:2,bop:.7,psz:true,pop:true,sh:“t”},
-{id:“spray”,name:“Spray”,hard:0,sp:1,bop:.3,psz:false,pop:true,sh:“s”},
-{id:“watercolor”,name:“Watercolor”,hard:.1,sp:2,bop:.25,psz:true,pop:true,sh:“r”},
-{id:“charcoal”,name:“Charcoal”,hard:.4,sp:1,bop:.6,psz:true,pop:true,sh:“t”},
+  {id:"pen",name:"Pen",hard:1,sp:2,bop:1,psz:true,pop:false,sh:"r"},
+  {id:"pencil",name:"Pencil",hard:.65,sp:1,bop:.8,psz:true,pop:true,sh:"r"},
+  {id:"ink",name:"Ink",hard:1,sp:1,bop:1,psz:true,pop:false,sh:"r"},
+  {id:"dip",name:"Dip Pen",hard:1,sp:1,bop:1,psz:true,pop:false,sh:"c"},
+  {id:"marker",name:"Marker",hard:.9,sp:3,bop:.65,psz:false,pop:true,sh:"r"},
+  {id:"soft",name:"Soft Brush",hard:.15,sp:2,bop:.4,psz:true,pop:true,sh:"r"},
+  {id:"airbrush",name:"Airbrush",hard:.03,sp:1,bop:.12,psz:true,pop:true,sh:"r"},
+  {id:"flat",name:"Flat Brush",hard:.85,sp:2,bop:.85,psz:true,pop:false,sh:"f"},
+  {id:"crayon",name:"Crayon",hard:.5,sp:2,bop:.7,psz:true,pop:true,sh:"t"},
+  {id:"spray",name:"Spray",hard:0,sp:1,bop:.3,psz:false,pop:true,sh:"s"},
+  {id:"watercolor",name:"Watercolor",hard:.1,sp:2,bop:.25,psz:true,pop:true,sh:"r"},
+  {id:"charcoal",name:"Charcoal",hard:.4,sp:1,bop:.6,psz:true,pop:true,sh:"t"},
 ];
 const ERASERS = [
-{id:“e1”,name:“Hard Eraser”,hard:1,sp:2,bop:1,psz:true,pop:false,sh:“r”,eraser:true},
-{id:“e2”,name:“Soft Eraser”,hard:.15,sp:2,bop:.6,psz:true,pop:true,sh:“r”,eraser:true},
-{id:“e3”,name:“Sharp Eraser”,hard:1,sp:1,bop:1,psz:true,pop:false,sh:“r”,eraser:true},
-{id:“e4”,name:“Feather Eraser”,hard:.05,sp:1,bop:.3,psz:true,pop:true,sh:“r”,eraser:true},
-{id:“e5”,name:“Block Eraser”,hard:1,sp:2,bop:1,psz:false,pop:false,sh:“f”,eraser:true},
+  {id:"e1",name:"Hard Eraser",hard:1,sp:2,bop:1,psz:true,pop:false,sh:"r",eraser:true},
+  {id:"e2",name:"Soft Eraser",hard:.15,sp:2,bop:.6,psz:true,pop:true,sh:"r",eraser:true},
+  {id:"e3",name:"Sharp Eraser",hard:1,sp:1,bop:1,psz:true,pop:false,sh:"r",eraser:true},
+  {id:"e4",name:"Feather Eraser",hard:.05,sp:1,bop:.3,psz:true,pop:true,sh:"r",eraser:true},
+  {id:"e5",name:"Block Eraser",hard:1,sp:2,bop:1,psz:false,pop:false,sh:"f",eraser:true},
 ];
-const PALETTE = [”#000000”,”#ffffff”,”#e74c3c”,”#e67e22”,”#f1c40f”,”#2ecc71”,”#3498db”,”#9b59b6”,”#e84393”,”#795548”,”#7f8c8d”,”#bdc3c7”,”#ff7979”,”#ffeaa7”,”#badc58”,”#7ed6df”,”#e056fd”,”#686de0”,”#4a0000”,”#4a2600”,”#4a4a00”,”#004a00”,”#00264a”,”#26004a”];
-const PRESETS = [{l:“HD”,w:1920,h:1080},{l:“720p”,w:1280,h:720},{l:“Square”,w:1080,h:1080},{l:“Portrait”,w:1080,h:1920},{l:“2K”,w:2048,h:2048},{l:“A4”,w:1240,h:1754}];
-const BLENDS = [“Normal”,“Multiply”,“Screen”,“Overlay”,“Darken”,“Lighten”,“Color Dodge”,“Color Burn”,“Hard Light”,“Soft Light”,“Difference”];
+const PALETTE = ["#000000","#ffffff","#e74c3c","#e67e22","#f1c40f","#2ecc71","#3498db","#9b59b6","#e84393","#795548","#7f8c8d","#bdc3c7","#ff7979","#ffeaa7","#badc58","#7ed6df","#e056fd","#686de0","#4a0000","#4a2600","#4a4a00","#004a00","#00264a","#26004a"];
+const PRESETS = [{l:"HD",w:1920,h:1080},{l:"720p",w:1280,h:720},{l:"Square",w:1080,h:1080},{l:"Portrait",w:1080,h:1920},{l:"2K",w:2048,h:2048},{l:"A4",w:1240,h:1754}];
+const BLENDS = ["Normal","Multiply","Screen","Overlay","Darken","Lighten","Color Dodge","Color Burn","Hard Light","Soft Light","Difference"];
 
 /* ═══ IBIS-LIKE THEME ═══ */
 const TH = {
-topBar:”#b8b8b8”, topBarBorder:”#a0a0a0”, topIcon:”#555”,
-canvasBg:”#909090”,
-panelBg:“rgba(68,68,68,0.94)”, panelBorder:”#555”, panelText:”#eee”, panelDim:”#aaa”,
-bottomBar:”#3a3a3a”, bottomIcon:”#ccc”, bottomIconActive:”#5bc4f0”,
-brushPanel:“rgba(180,180,180,0.95)”, brushText:”#222”, brushDim:”#666”,
-accent:”#5bc4f0”, accentRed:”#e85d4a”,
-sliderTrack:”#4a7ab5”, sliderBg:”#888”,
+  topBar:"#b8b8b8", topBarBorder:"#a0a0a0", topIcon:"#555",
+  canvasBg:"#909090",
+  panelBg:"rgba(68,68,68,0.94)", panelBorder:"#555", panelText:"#eee", panelDim:"#aaa",
+  bottomBar:"#3a3a3a", bottomIcon:"#ccc", bottomIconActive:"#5bc4f0",
+  brushPanel:"rgba(180,180,180,0.95)", brushText:"#222", brushDim:"#666",
+  accent:"#5bc4f0", accentRed:"#e85d4a",
+  sliderTrack:"#4a7ab5", sliderBg:"#888",
 };
 
 /* ═══ APP ═══ */
 function App(){
-const [screen,setScreen]=useState(“home”);
-const [projects,setProjects]=useState([]);
-const [activeP,setActiveP]=useState(null);
-const saved=useRef(new Map());
-const openP=p=>{setActiveP(p);setScreen(“editor”)};
-const back=(id,fd)=>{if(id&&fd)saved.current.set(id,fd);setScreen(“gallery”)};
-const getSaved=id=>saved.current.get(id);
-if(screen===“home”)return <Home onGo={()=>setScreen(“gallery”)}/>;
-if(screen===“gallery”)return <Gallery projects={projects} getSaved={getSaved} onBack={()=>setScreen(“home”)} onNew={(w,h,name)=>{const p={id:uid(),name:name||“Untitled”,w,h,created:Date.now()};setProjects(pr=>[p,…pr]);openP(p)}} onOpen={openP} onDelete={id=>setProjects(p=>p.filter(x=>x.id!==id))}/>;
-if(screen===“editor”)return <Editor project={activeP} saved={saved.current.get(activeP?.id)} onBack={fd=>back(activeP?.id,fd)}/>;
-return null;
+  const [screen,setScreen]=useState("home");
+  const [projects,setProjects]=useState([]);
+  const [activeP,setActiveP]=useState(null);
+  const saved=useRef(new Map());
+  const openP=p=>{setActiveP(p);setScreen("editor")};
+  const back=(id,fd)=>{if(id&&fd)saved.current.set(id,fd);setScreen("gallery")};
+  const getSaved=id=>saved.current.get(id);
+  if(screen==="home")return <Home onGo={()=>setScreen("gallery")}/>;
+  if(screen==="gallery")return <Gallery projects={projects} getSaved={getSaved} onBack={()=>setScreen("home")} onNew={(w,h,name)=>{const p={id:uid(),name:name||"Untitled",w,h,created:Date.now()};setProjects(pr=>[p,...pr]);openP(p)}} onOpen={openP} onDelete={id=>setProjects(p=>p.filter(x=>x.id!==id))}/>;
+  if(screen==="editor")return <Editor project={activeP} saved={saved.current.get((activeP&&activeP.id))} onBack={fd=>back((activeP&&activeP.id),fd)}/>;
+  return null;
 }
 
 /* ═══ HOME ═══ */
 function Home({onGo}){
-const [ready,setReady]=useState(false);
-useEffect(()=>{requestAnimationFrame(()=>setReady(true))},[]);
-// Animated dots
-const dots=useRef(Array.from({length:40},()=>({
-x:Math.random()*100,y:Math.random()*100,
-r:Math.random()*2+1,
-dx:(Math.random()-.5)*.15,dy:(Math.random()-.5)*.15,
-op:Math.random()*.3+.1,
-hue:Math.floor(Math.random()*3) // 0=blue, 1=purple, 2=coral
-}))).current;
-const dotCanvas=useRef(null);
-useEffect(()=>{
-const c=dotCanvas.current;if(!c)return;
-c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;
-const ctx=c.getContext(“2d”);
-let raf;
-const colors=[“91,196,240”,“123,108,246”,“232,93,74”];
-const draw=()=>{
-ctx.clearRect(0,0,c.width,c.height);
-dots.forEach(d=>{
-d.x+=d.dx;d.y+=d.dy;
-if(d.x<0||d.x>100)d.dx*=-1;
-if(d.y<0||d.y>100)d.dy*=-1;
-const px=d.x/100*c.width,py=d.y/100*c.height;
-ctx.beginPath();ctx.arc(px,py,d.r*2,0,6.28);
-ctx.fillStyle=`rgba(${colors[d.hue]},${d.op})`;ctx.fill();
-// Connection lines to nearby dots
-dots.forEach(d2=>{
-if(d===d2)return;
-const dx2=(d2.x-d.x)/100*c.width,dy2=(d2.y-d.y)/100*c.height;
-const dist=Math.sqrt(dx2*dx2+dy2*dy2);
-if(dist<80){
-ctx.beginPath();ctx.moveTo(px,py);
-ctx.lineTo(d2.x/100*c.width,d2.y/100*c.height);
-ctx.strokeStyle=`rgba(${colors[d.hue]},${.04*(1-dist/80)})`;
-ctx.lineWidth=1;ctx.stroke();
-}
-});
-});
-raf=requestAnimationFrame(draw);
-};
-draw();
-return()=>cancelAnimationFrame(raf);
-},[]);
+  const [ready,setReady]=useState(false);
+  useEffect(()=>{requestAnimationFrame(()=>setReady(true))},[]);
+  // Animated dots
+  const dots=useRef(Array.from({length:40},()=>({
+    x:Math.random()*100,y:Math.random()*100,
+    r:Math.random()*2+1,
+    dx:(Math.random()-.5)*.15,dy:(Math.random()-.5)*.15,
+    op:Math.random()*.3+.1,
+    hue:Math.floor(Math.random()*3) // 0=blue, 1=purple, 2=coral
+  }))).current;
+  const dotCanvas=useRef(null);
+  useEffect(()=>{
+    const c=dotCanvas.current;if(!c)return;
+    c.width=c.offsetWidth*2;c.height=c.offsetHeight*2;
+    const ctx=c.getContext("2d");
+    let raf;
+    const colors=["91,196,240","123,108,246","232,93,74"];
+    const draw=()=>{
+      ctx.clearRect(0,0,c.width,c.height);
+      dots.forEach(d=>{
+        d.x+=d.dx;d.y+=d.dy;
+        if(d.x<0||d.x>100)d.dx*=-1;
+        if(d.y<0||d.y>100)d.dy*=-1;
+        const px=d.x/100*c.width,py=d.y/100*c.height;
+        ctx.beginPath();ctx.arc(px,py,d.r*2,0,6.28);
+        ctx.fillStyle=`rgba(${colors[d.hue]},${d.op})`;ctx.fill();
+        // Connection lines to nearby dots
+        dots.forEach(d2=>{
+          if(d===d2)return;
+          const dx2=(d2.x-d.x)/100*c.width,dy2=(d2.y-d.y)/100*c.height;
+          const dist=Math.sqrt(dx2*dx2+dy2*dy2);
+          if(dist<80){
+            ctx.beginPath();ctx.moveTo(px,py);
+            ctx.lineTo(d2.x/100*c.width,d2.y/100*c.height);
+            ctx.strokeStyle=`rgba(${colors[d.hue]},${.04*(1-dist/80)})`;
+            ctx.lineWidth=1;ctx.stroke();
+          }
+        });
+      });
+      raf=requestAnimationFrame(draw);
+    };
+    draw();
+    return()=>cancelAnimationFrame(raf);
+  },[]);
 
-return(
-<div style={{position:“fixed”,inset:0,display:“flex”,flexDirection:“column”,alignItems:“center”,justifyContent:“center”,overflow:“hidden”,fontFamily:”‘DM Sans’,sans-serif”,background:”#0a0c14”}}>
-<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
-<style>{`@keyframes homeIn{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}} @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}} @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}`}</style>
+  return(
+    <div style={{position:"fixed",inset:0,display:"flex",flexDirection:"column",alignItems:"center",justifyContent:"center",overflow:"hidden",fontFamily:"'DM Sans',sans-serif",background:"#0a0c14"}}>
+      <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+      <style>{`
+        @keyframes homeIn{from{opacity:0;transform:translateY(24px) scale(.95)}to{opacity:1;transform:translateY(0) scale(1)}}
+        @keyframes pulse{0%,100%{opacity:.6}50%{opacity:1}}
+        @keyframes shimmer{0%{background-position:-200% center}100%{background-position:200% center}}
+      `}</style>
 
 ```
   {/* Particle canvas */}
@@ -280,7 +319,7 @@ const dy=e.touches[0].clientY-dragStart.current.y;
 if(dy>0)setPreviewY(dy);
 };
 const onPreviewTouchEnd=()=>{
-if(previewY>120||(previewY>40&&Date.now()-dragStart.current?.time<200)){closePreview()}
+if(previewY>120||(previewY>40&&Date.now()-(dragStart.current&&dragStart.current.time)<200)){closePreview()}
 else{setPreviewY(0)}
 dragStart.current=null;
 };
@@ -529,8 +568,8 @@ useEffect(()=>{framesR.current=frames},[frames]);
 useEffect(()=>{fiR.current=fi},[fi]);
 useEffect(()=>{liR.current=li},[li]);
 
-const curLayers=frames[fi]?.layers||[];
-const curCanvas=useCallback(()=>{const f=framesR.current[fiR.current];return f?.layers[liR.current]?.c||null},[]);
+const curLayers=(frames[fi]&&frames[fi].layers)||[];
+const curCanvas=useCallback(()=>{const f=framesR.current[fiR.current];return (f&&f.layers[liR.current]&&f.layers[liR.current].c)||null},[]);
 
 // ── Render ──
 const renderOnce=useCallback(()=>{
@@ -658,8 +697,8 @@ const lassoOffset=useRef({x:0,y:0});
 
 // Undo/Redo
 const pushUndo=useCallback(()=>{const c=curCanvas();if(!c)return;const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(c,0,0);setUndos(p=>[…p.slice(-30),{fi:fiR.current,li:liR.current,d:s}]);setRedos([])},[curCanvas,W,H]);
-const undo=useCallback(()=>{if(!undos.length)return;const u=undos[undos.length-1];const f=framesR.current[u.fi];if(f?.layers[u.li]){const l=f.layers[u.li];const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(l.c,0,0);setRedos(p=>[…p,{…u,d:s}]);const ctx=l.c.getContext(“2d”);ctx.clearRect(0,0,W,H);ctx.drawImage(u.d,0,0)}setUndos(p=>p.slice(0,-1));sched()},[undos,W,H]);
-const redo=useCallback(()=>{if(!redos.length)return;const r=redos[redos.length-1];const f=framesR.current[r.fi];if(f?.layers[r.li]){const l=f.layers[r.li];const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(l.c,0,0);setUndos(p=>[…p,{…r,d:s}]);const ctx=l.c.getContext(“2d”);ctx.clearRect(0,0,W,H);ctx.drawImage(r.d,0,0)}setRedos(p=>p.slice(0,-1));sched()},[redos,W,H]);
+const undo=useCallback(()=>{if(!undos.length)return;const u=undos[undos.length-1];const f=framesR.current[u.fi];if(f&&f.layers[u.li]){const l=f.layers[u.li];const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(l.c,0,0);setRedos(p=>[…p,{…u,d:s}]);const ctx=l.c.getContext(“2d”);ctx.clearRect(0,0,W,H);ctx.drawImage(u.d,0,0)}setUndos(p=>p.slice(0,-1));sched()},[undos,W,H]);
+const redo=useCallback(()=>{if(!redos.length)return;const r=redos[redos.length-1];const f=framesR.current[r.fi];if(f&&f.layers[r.li]){const l=f.layers[r.li];const s=document.createElement(“canvas”);s.width=W;s.height=H;s.getContext(“2d”).drawImage(l.c,0,0);setUndos(p=>[…p,{…r,d:s}]);const ctx=l.c.getContext(“2d”);ctx.clearRect(0,0,W,H);ctx.drawImage(r.d,0,0)}setRedos(p=>p.slice(0,-1));sched()},[redos,W,H]);
 
 // Flood fill
 const floodFill=useCallback((sx,sy)=>{const c=curCanvas();if(!c)return;const ctx=c.getContext(“2d”);const img=ctx.getImageData(0,0,W,H);const d=img.data;const ix=Math.floor(sx),iy=Math.floor(sy);if(ix<0||ix>=W||iy<0||iy>=H)return;const si=(iy*W+ix)*4;const[sr,sg,sb,sa]=[d[si],d[si+1],d[si+2],d[si+3]];const[tr,tg,tb]=hexRgb(col);if(sr===tr&&sg===tg&&sb===tb&&sa===255)return;const match=i=>Math.abs(d[i]-sr)+Math.abs(d[i+1]-sg)+Math.abs(d[i+2]-sb)+Math.abs(d[i+3]-sa)<40;const stack=[[ix,iy]];const vis=new Uint8Array(W*H);while(stack.length){const[cx,cy]=stack.pop();const k=cy*W+cx;if(vis[k]||cx<0||cx>=W||cy<0||cy>=H)continue;if(!match(k*4))continue;vis[k]=1;d[k*4]=tr;d[k*4+1]=tg;d[k*4+2]=tb;d[k*4+3]=255;stack.push([cx+1,cy],[cx-1,cy],[cx,cy+1],[cx,cy-1])}ctx.putImageData(img,0,0);sched()},[curCanvas,W,H,col]);
@@ -1221,10 +1260,10 @@ return(
           <label style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText,cursor:"pointer"}}>
             <input type="checkbox" checked={onion} onChange={e=>setOnion(e.target.checked)} style={{accentColor:TH.accent}}/> Onion Skin
           </label>
-          {onion&&<>
+          {onion&&<React.Fragment>
             <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText}}><span style={{width:50}}>Frames</span><input type="range" min={1} max={6} value={onionN} onChange={e=>setOnionN(+e.target.value)} style={{flex:1,accentColor:TH.accent}}/><span style={{width:16,fontSize:10,color:TH.panelDim}}>{onionN}</span></div>
             <div style={{display:"flex",alignItems:"center",gap:6,fontSize:11,color:TH.panelText}}><span style={{width:50}}>Opacity</span><input type="range" min={5} max={80} value={Math.round(onionA*100)} onChange={e=>setOnionA(e.target.value/100)} style={{flex:1,accentColor:TH.accent}}/><span style={{width:24,fontSize:10,color:TH.panelDim}}>{Math.round(onionA*100)}%</span></div>
-          </>}
+          </React.Fragment>}
           <div style={{fontSize:11,fontWeight:600,color:TH.panelText,marginTop:2}}>Symmetry</div>
           <div style={{display:"flex",gap:3}}>{[["off","OFF"],["v","V"],["h","H"],["4","Quad"]].map(([k,l])=>(<button key={k} onClick={()=>setSym(k)} style={{flex:1,padding:"6px 0",borderRadius:5,fontSize:10,fontWeight:600,cursor:"pointer",fontFamily:"inherit",border:sym===k?`1.5px solid ${TH.accent}`:`1px solid ${TH.panelBorder}`,background:sym===k?"rgba(91,196,240,0.15)":"transparent",color:sym===k?TH.accent:TH.panelDim}}>{l}</button>))}</div>
           <button onClick={genTween} style={{width:"100%",padding:"10px 0",borderRadius:8,border:"none",background:TH.accent,color:"#fff",fontSize:12,fontWeight:600,cursor:"pointer",fontFamily:"inherit"}}>Tween (3 frames)</button>
@@ -1372,11 +1411,19 @@ return(
       </button>))}
   </div>
 </div>
+```
 
 );
 }
 
+try {
 ReactDOM.createRoot(document.getElementById(‘root’)).render(React.createElement(App));
+document.getElementById(‘loading’).style.display=‘none’;
+} catch(e) {
+document.getElementById(‘error’).style.display=‘block’;
+document.getElementById(‘error’).textContent=‘RENDER ERROR: ‘+e.message+’\n\n’+e.stack;
+document.getElementById(‘loading’).style.display=‘none’;
+}
 </script>
 
 </body>
