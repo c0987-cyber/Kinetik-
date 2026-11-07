@@ -1,2 +1,0 @@
-# Kinetik-
-Drawing app
