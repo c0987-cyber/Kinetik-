@@ -1,0 +1,1144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#000000">
+<link rel="icon" href="data:,">
+<title>Cavediving · Voice lines</title>
+<style>
+:root { --bg:#000; --panel:#0d0d0f; --edge:#2a2a30; --text:#f2f2f2; --dim:#8b8b94; --warm:#ffa550; --red:#ff4848; --ok:#7fdc8a; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text);
+  font: 16px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+body { display: flex; flex-direction: column; min-height: 100%;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+button, .btn { font: inherit; color: inherit; background: var(--panel); border: 1px solid var(--edge); border-radius: 0;
+  padding: 10px 14px; cursor: pointer; touch-action: manipulation; }
+button:disabled { opacity: .3; cursor: default; }
+.btn { display: block; text-align: center; padding: 14px; margin: 6px 0; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+header { display: flex; align-items: baseline; justify-content: space-between; padding: 14px 16px 8px; }
+header .title { font-weight: 700; letter-spacing: .02em; }
+header .count { color: var(--dim); font-variant-numeric: tabular-nums; }
+.bar { height: 3px; background: #17171a; margin: 0 16px; }
+.bar div { height: 100%; width: 0; background: var(--warm); transition: width .3s; }
+nav { display: flex; gap: 8px; padding: 10px 16px 0; }
+nav button { flex: 1; padding: 8px 6px; font-size: 14px; }
+main { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 18px 20px; gap: 12px; max-width: 760px; width: 100%; margin: 0 auto; }
+.where { color: var(--dim); font-size: 13px; letter-spacing: .04em; text-transform: uppercase; }
+.prev { color: #5d5d66; font-size: 14px; }
+.line { font-size: 27px; line-height: 1.3; font-weight: 600; }
+.say { color: var(--warm); font-size: 15px; }
+.say:empty, .prev:empty { display: none; }
+.how { border-left: 3px solid var(--warm); padding: 6px 0 6px 12px; color: #d9d9de; font-size: 16px; }
+.how b { color: var(--warm); font-weight: 600; margin-right: 6px; }
+.note { color: var(--dim); font-size: 14px; }
+.status { font-size: 14px; color: var(--dim); }
+.status.ok { color: var(--ok); }
+.meter { height: 6px; background: #17171a; }
+.meter div { height: 100%; width: 0; background: var(--ok); }
+.meter div.hot { background: var(--red); }
+footer { padding: 10px 16px 18px; display: flex; flex-direction: column; gap: 10px; max-width: 760px; width: 100%; margin: 0 auto; }
+.row { display: flex; gap: 10px; align-items: stretch; }
+.row button { flex: 1; }
+.row .nav { flex: 0 0 64px; font-size: 20px; }
+#btnRec { flex: 1; padding: 22px 10px; font-size: 20px; font-weight: 700; background: #fff; color: #000; border-color: #fff; }
+#btnRec.recording { background: var(--red); border-color: var(--red); color: #fff; }
+#btnRec.busy { background: #222; color: var(--dim); border-color: var(--edge); }
+.small button { font-size: 14px; padding: 9px 8px; }
+#undoRow { display: none; }
+#undoRow.show { display: flex; }
+.sheet { position: fixed; inset: 0; background: rgba(0,0,0,.94); display: none; flex-direction: column; z-index: 10;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
+.sheet.open { display: flex; }
+.sheet .top { display: flex; justify-content: space-between; align-items: center; padding: 14px 16px; border-bottom: 1px solid var(--edge); }
+.sheet .top b { font-size: 17px; }
+.sheet .body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 12px 16px 30px; max-width: 760px; width: 100%; margin: 0 auto; }
+.lh { color: var(--warm); font-size: 13px; text-transform: uppercase; letter-spacing: .05em; margin: 18px 0 6px; }
+.li { display: flex; width: 100%; text-align: left; gap: 10px; padding: 9px 10px; margin: 0 0 4px; font-size: 14px; }
+.li.cur { border-color: var(--warm); }
+.li .tick { flex: 0 0 16px; color: var(--ok); }
+.li .lid { flex: 0 0 108px; color: var(--dim); }
+.li .lt { flex: 1; }
+.dim { color: var(--dim); }
+.tips h3, .exp h3 { color: var(--warm); font-size: 15px; margin: 22px 0 6px; text-transform: uppercase; letter-spacing: .04em; }
+.tips p, .tips li, .exp p { color: #d9d9de; }
+.tips ol, .tips ul { padding-left: 20px; }
+.toggle { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #1a1a1e; }
+.toggle span small { display: block; color: var(--dim); }
+.toggle input { width: 22px; height: 22px; flex: 0 0 22px; accent-color: var(--warm); }
+.exp .big { font-size: 22px; font-weight: 700; }
+.exp button { width: 100%; margin: 6px 0; padding: 14px; }
+.exp .primary { background: #fff; color: #000; border-color: #fff; font-weight: 700; }
+.exp p.dim { color: var(--dim); }
+.banner { background: #2a1010; border: 1px solid #5a2020; color: #ffcfcf; padding: 10px 14px; margin: 10px 16px 0; font-size: 14px; display: none; }
+.toast { position: fixed; left: 50%; bottom: calc(24px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #fff; color: #000;
+  padding: 10px 16px; font-size: 14px; width: max-content; max-width: 90%; display: none; z-index: 20; }
+@media (min-width: 700px) { .line { font-size: 32px; } }
+</style>
+</head>
+<body>
+<header>
+  <div class="title">Cavediving · Voice lines</div>
+  <div class="count" id="count">0 / 0</div>
+</header>
+<div class="bar"><div id="barFill"></div></div>
+<div class="banner" id="banner"></div>
+<nav>
+  <button id="btnList">All lines</button>
+  <button id="btnTips">How to record</button>
+  <button id="btnExport">Export</button>
+</nav>
+<main>
+  <div class="where" id="where"></div>
+  <div class="prev" id="prev"></div>
+  <div class="line" id="line"></div>
+  <div class="say" id="say"></div>
+  <div class="how"><b>How</b><span id="how"></span></div>
+  <div class="note" id="note"></div>
+  <div class="status" id="status"></div>
+  <div class="meter"><div id="meterFill"></div></div>
+</main>
+<footer>
+  <div class="row">
+    <button class="nav" id="btnPrev" aria-label="Previous line">&#9664;</button>
+    <button id="btnRec">Record</button>
+    <button class="nav" id="btnNext" aria-label="Next line">&#9654;</button>
+  </div>
+  <div class="row small">
+    <button id="btnPlay">Play take</button>
+    <button id="btnNextMissing">Next unrecorded</button>
+    <button id="btnDelete">Delete take</button>
+  </div>
+  <div class="row small" id="undoRow">
+    <button id="btnUndo">Bring back the take before this one</button>
+  </div>
+</footer>
+
+<div class="sheet" id="sheetList">
+  <div class="top"><b>All lines</b><button data-close>Done</button></div>
+  <div class="body">
+    <label class="toggle"><span>Only show lines not recorded yet</span><input type="checkbox" id="onlyMissing"></label>
+    <div id="listBody"></div>
+  </div>
+</div>
+
+<div class="sheet" id="sheetTips">
+  <div class="top"><b>How to record</b><button data-close>Got it</button></div>
+  <div class="body tips">
+    <h3>Who he is</h3>
+    <p>A normal guy sitting at the top of the cave with a walkie-talkie. He's climbed all of this himself, more than once. Calm, dry, a little tired. He's not a narrator. Think of being on the phone with a friend who's halfway up a cliff.</p>
+    <h3>How to sound</h3>
+    <ul>
+      <li>Talk, don't perform. Say it the way you'd actually say it to a friend.</li>
+      <li>Small smiles are good. Big emotion isn't. The sad lines get quieter and simpler, not more dramatic.</li>
+      <li>Don't put on a radio voice. The game adds the walkie-talkie sound itself (except in the ending).</li>
+      <li>Reactions repeat a lot, so keep those light and quick.</li>
+      <li>Read the "How" note under each line before you hit record.</li>
+    </ul>
+    <h3>Setup</h3>
+    <ul>
+      <li>Quietest room you've got. A closet full of clothes makes a great booth.</li>
+      <li>Use the phone's own mic. Take your AirPods out: their mic sounds like a phone call.</li>
+      <li>Phone about a hand's width from your mouth, a little off to the side so P's and B's don't pop.</li>
+      <li>Same spot and distance for every line, so they all match.</li>
+      <li>Tap Record, wait half a second, then talk. Leave a beat at the end before you tap Stop. The app cuts the gaps off for you.</li>
+    </ul>
+    <h3>iPhone: turn on Voice Isolation</h3>
+    <ol>
+      <li>Record any line once (that turns the mic on).</li>
+      <li>While it's recording, swipe down from the top-right corner to open Control Center.</li>
+      <li>Tap the Safari controls at the top, then under Mic Mode pick <b>Voice Isolation</b>.</li>
+      <li>It stays on for Safari after that. Redo the first line once it's on.</li>
+    </ol>
+    <p class="dim">If Mic Mode isn't there, your iPhone doesn't offer it for Safari. The cleanup below still runs.</p>
+    <h3>Settings</h3>
+    <label class="toggle"><span>Clean up background noise<small>The phone's own noise and echo removal. Voice Isolation needs this on. Turn it off for a fuller, more natural sound if your room is really quiet.</small></span><input type="checkbox" id="setClean"></label>
+    <label class="toggle"><span>Trim silence and even out the volume<small>Cuts the dead air before and after you talk, and makes every line about as loud as the others.</small></span><input type="checkbox" id="setTrim"></label>
+    <label class="toggle"><span>Play each take back straight away</span><input type="checkbox" id="setPlayback"></label>
+    <h3>When you're done</h3>
+    <p>Tap Export and download the zip, or share it to Google Drive or iCloud Drive. On your PC, put <b>Voice.zip</b> in <b>Downloads\Cavediving</b>, right-click it and pick Extract All. That makes the Voice folder. Then tell Claude "import voices". Every file is already named after its line, like <b>wake_1.wav</b>.</p>
+    <p class="dim">Takes are saved in this browser, so you can stop and come back later. iPhone can clear a site's data if you don't open it for a while, so export a backup zip now and then. You can load a zip back in from the Export screen. On a computer, Space starts and stops recording, the arrow keys change lines, P plays the take and N jumps to the next unrecorded line.</p>
+  </div>
+</div>
+
+<div class="sheet" id="sheetExport">
+  <div class="top"><b>Export</b><button data-close>Close</button></div>
+  <div class="body exp">
+    <p class="big" id="expCount"></p>
+    <p id="expMissing" class="dim"></p>
+    <button class="primary" id="btnMakeZip">Make the zip</button>
+    <p id="zipStatus" class="dim"></p>
+    <button id="btnDownload" style="display:none">Download Voice.zip</button>
+    <button id="btnShare" style="display:none">Share Voice.zip&hellip;</button>
+    <p class="dim">Each file is named after its line (wake_1.wav, setback_3.wav ...). On your PC, put Voice.zip in Downloads\Cavediving, right-click it and pick Extract All. That makes the Voice folder. Then tell Claude "import voices". A half-done zip is fine too: lines without a recording just show as text in the game.</p>
+    <h3>Load takes</h3>
+    <p class="dim">Put back a zip you exported before, or .wav files named like wake_1.wav. Handy on a new phone, or if Safari cleared its data.</p>
+    <label class="toggle"><span>Replace takes I already have</span><input type="checkbox" id="importReplace"></label>
+    <label class="btn" for="fileImport">Choose files&hellip;</label>
+    <input class="vh" type="file" id="fileImport" multiple accept=".zip,.wav,audio/*,application/zip">
+    <p id="importStatus" class="dim"></p>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(() => {
+'use strict';
+
+// ---------------------------------------------------------------------------------------------
+// The script: every voice line in the game, with how to say it
+// ---------------------------------------------------------------------------------------------
+const SECTIONS = {
+  act1: { title: 'Act one', note: 'Over the radio. He knows this cave inside out.' },
+  act2: { title: 'Act two', note: 'Over the radio. Someone he used to cave with starts turning up in what he says. Fond, not sad yet.' },
+  act3: { title: 'Act three', note: 'Over the radio, and he\'s getting closer. In the Grotto he tells you who she was: quieter, not more dramatic.' },
+  hints: { title: 'Hints and first times', note: 'Plain, helpful tips. Each plays once per run.' },
+  react: { title: 'Reactions', note: 'These repeat a lot. Keep them light and quick.' },
+  ending: { title: 'Ending', note: 'In person: he\'s sitting right next to you, no radio. Talk a bit quieter, like he\'s right there.' },
+};
+const LINES = [
+  // act one
+  ['act1', 'The bottom (start)', 'wake_1', "That's it. You're at the bottom. There's nothing under you but rock now.", 'Relieved, a little proud of you. The very first thing anyone hears: warm, not loud.'],
+  ['act1', 'The bottom (start)', 'wake_2', "Every tunnel's on the map, dead ends and all. That's the whole cave.", 'Satisfied. Let "That\'s the whole cave" land gently.'],
+  ['act1', 'The bottom (start)', 'wake_3', "So now you've just got to get back out.", 'Dry, a small smile. The hard part starts now.'],
+  ['act1', 'The bottom (start)', 'wake_4', 'Up you come.', 'Easy and encouraging. Short.'],
+  ['act1', 'The Braids', 'braids_1', "This part's the Braids. The tubes all loop back into each other, so don't worry if it starts looking familiar.", 'Casual tour guide. Reassuring on "don\'t worry".'],
+  ['act1', 'The Braids', 'braids_2', "Just keep picking the one that goes up. You'll come out the top.", 'Simple advice. Relaxed.'],
+  ['act1', 'The Choke', 'choke_1', 'This is the Choke. The roof came down a long time ago and got jammed on the way.', 'Matter-of-fact. He knows this place well.'],
+  ['act1', 'The Choke', 'choke_2', "Go up through the gaps between the blocks. I got stuck in here for an hour once. Try not to beat that.", '"Try not to beat that" is a joke. A tiny laugh is fine.'],
+  ['act1', 'The Duck', 'duck_1', "There's water coming up. Get a proper breath in before you go under.", 'A bit more careful. He means it.'],
+  ['act1', 'The Duck', 'duck_2', "If you run out of air you'll black out and wake up back where you last had some.", 'A plain warning, not a scary one.'],
+  ['act1', 'Hall of Teeth', 'teeth_1', 'Hall of Teeth. You do this one along the ceiling.', 'Introducing a big room. A bit of respect for it.'],
+  ['act1', 'Hall of Teeth', 'teeth_2', "There are bars along the way. Get up on top of one and lie down if you need a rest. Hanging off the bottom doesn't count.", 'Practical. Dry on the last sentence.'],
+  ['act1', 'Hall of Teeth', 'teeth_3', "If you drop, it's into the lake. It won't hurt you. It's just a long way back.", 'Reassuring, then dry on "long way back".'],
+  ['act1', 'Flowstone', 'cascade_1', "Flowstone. Water's been laying this down for thousands of years. It's like glass.", 'Admiring. He likes this rock.'],
+  ['act1', 'Flowstone', 'cascade_2', "Grab the edges of the pools. Anything in between, your hand's just going to slide off.", 'Clear, practical tip.'],
+  ['act1', 'The Siphon', 'siphon_1', "The Siphon's the deep one. Fill up at the tank before you go in.", 'Serious but calm. This one matters.'],
+  ['act1', 'The Siphon', 'siphon_2', "Every time. Even when you think you've got enough.", 'Firm and a bit slower, like a parent.'],
+  ['act1', 'The Great Hall', 'hall_1', 'This is the Great Hall. You could fit a house in here. Probably two.', 'A little wonder, then a dry "Probably two."'],
+  ['act1', 'The Great Hall', 'hall_2', "Every old map I've got just has a dotted line for the far wall. Yours'll be the first with an actual wall on it.", 'Quietly excited for you. This matters to him.'],
+  ['act1', 'The Great Hall', 'hall_3', "Way on's up.", 'Short, flat, almost a shrug.'],
+  ['act1', 'The Face', 'face_1', "The Face. It's mostly polished smooth, but there are holds if you look. A few ledges you can lie on, too.", 'Steady and encouraging.'],
+  ['act1', 'The Face', 'face_2', 'Take this one slow. No rush.', 'Soft. Slow yourself down when you say it.'],
+  ['act1', 'Roof channel', 'channel_1', "There's a channel cut into the roof. Follow it across. And maybe don't look down too much.", 'Casual, small smile on "don\'t look down".'],
+  // act two
+  ['act2', 'Bad Air', 'badair_1', "This is Bad Air. You'll feel it in your chest, and your light goes a bit yellow. Don't hang around.", 'Concerned but even. "Don\'t hang around" a bit quicker.'],
+  ['act2', 'Bad Air', 'badair_2', "I used to cave with someone who could smell it before anyone else noticed a thing. I never could. Still can't.", 'First time she comes up, and he doesn\'t name her. Fond, a little far away. Not sad yet.'],
+  ['act2', 'The Corkscrew', 'corkscrew_1', "The Corkscrew. It's tight and it twists. Tuck, turn, tuck again.", 'Give "Tuck, turn, tuck again" a little rhythm.'],
+  ['act2', 'The Corkscrew', 'corkscrew_2', "Don't rush the middle. She always said rushing takes up room. Took me years to get what she meant.", 'A fond memory. A small laugh at himself on the last sentence.'],
+  ['act2', 'The Blackness', 'blackness_1', "There's no light past here. Grab a lantern.", 'Simple and practical.'],
+  ['act2', 'The Blackness', 'blackness_2', 'She used to switch her lamp off in places like this. Just sit there in the dark for a minute.', 'Remembering. Warmer and slower.'],
+  ['act2', 'The Blackness', 'blackness_3', 'I tried it once. Lasted about four seconds.', 'Making fun of himself. Light.'],
+  ['act2', 'The Tide', 'tide_1', "This is the Tide. The water comes and goes when it likes. You can't hurry it, so just be ready when it drops.", 'Patient, calm pace.'],
+  ['act2', 'The Tide', 'tide_2', "She was good at waiting. I'm still terrible at it.", 'Fond and honest. A slight smile.'],
+  ['act2', 'The Waterfall', 'waterfall_1', "The Waterfall. Wet rock won't hold you long, so keep moving.", 'A touch louder: it\'s noisy in there.'],
+  ['act2', 'The Waterfall', 'waterfall_2', 'She loved it in here. Too loud to think. I think that was the point, for her.', 'Fond, thinking about her. Softer at the end.'],
+  // act three
+  ['act3', 'Dyno Garden', 'dyno_1', "Dyno Garden. You've got to jump for some of these. Let go while you're still pulling up, not after.", 'Coaching. Clear and confident.'],
+  ['act3', 'Dyno Garden', 'dyno_2', 'It feels wrong the first few times. Do it anyway.', 'Encouraging. "Do it anyway" with a grin.'],
+  ['act3', 'The Chimney', 'chimney_1', "The Chimney. It's straight u—", 'Normal, then the radio cuts out mid-word. Stop dead on "u". Don\'t finish the word.', 'cut'],
+  ['act3', 'The Chimney', 'chimney_2', "—hello? You still there? Sorry. Radio always cuts out in the Chimney.", 'The radio just came back. "Hello?" a little loud, then easy and apologetic.'],
+  ['act3', 'The Chimney', 'chimney_3', "Anyway. Straight up. Short pulls. Don't reach for more than you can hold.", 'Back on track. Clear instructions.'],
+  ['act3', 'False Top', 'falsetop_1', "See that light up there? That's not the way out. It's a chute. It'll drop you right back down.", 'A warning, a little urgent.'],
+  ['act3', 'False Top', 'falsetop_2', "I've done it. Twice.", 'Deadpan. A bit embarrassed.'],
+  ['act3', 'False Top', 'falsetop_3', "Hang on, I'm looking down it now... I can see your lamp.", 'Leaning over a hole, looking down. Quieter, searching... then he spots you.'],
+  ['act3', 'False Top', 'falsetop_4', 'Hi.', 'Soft, with a smile. Just "Hi."'],
+  ['act3', 'Final Roof', 'finalroof_1', "Last roof. Another lake under you, another long hang. You're better at these than you think.", 'Proud of you. Encouraging.'],
+  ['act3', 'Final Roof', 'finalroof_2', "If you fall in, keep the radio dry. It's the only one I've got that reaches all the way down.", 'Half joking, half serious.'],
+  ['act3', 'Flooded Maze', 'floodmaze_1', 'The Flooded Maze. Breathe in the air pockets, where the ceiling lifts.', 'Practical and calm.'],
+  ['act3', 'Flooded Maze', 'floodmaze_2', "Nobody's ever mapped all of this. She'd go off down a different tunnel every time, just to see if I'd follow.", 'Fond, a little exasperated. A smile.'],
+  ['act3', 'Flooded Maze', 'floodmaze_3', 'Get as much of it on the map as you can.', 'Quiet encouragement.'],
+  ['act3', 'The Rift', 'rift_1', "The Rift. Wedge yourself in where it's narrow. Where it opens out, rest on the stones.", 'Clear instructions.'],
+  ['act3', 'The Rift', 'rift_2', "She always got out first. I'd climb out and she'd already be sitting there with a chocolate bar, like she'd been waiting for hours.", 'Fond and amused. Picture her sitting there. Don\'t get sad.'],
+  ['act3', 'Boulder Bridge', 'bridge_1', 'Boulder Bridge. The gaps get bigger as you go.', 'Plain.'],
+  ['act3', 'Boulder Bridge', 'bridge_2', "She'd have just run across this. Used to drive me crazy.", 'Amused. Exasperated, but it\'s love.'],
+  ['act3', 'Long Squeeze', 'longsqueeze_1', 'The Long Squeeze. Go slow, and breathe out through the tight bits.', 'Gentle. Calm, slow breathing voice.'],
+  ['act3', 'Long Squeeze', 'longsqueeze_2', 'Hey... I can hear you. Not on the radio. Actually through the rock.', 'Surprised. Quieter. He can actually hear you.'],
+  ['act3', 'Long Squeeze', 'longsqueeze_3', "You're really close now.", 'Hopeful, almost a whisper.'],
+  ['act3', 'Crystal Grotto', 'crystals_1', "This is the Crystal Grotto. Don't touch the crystals. Brush one and you're back at your last flag.", 'A serious warning. Clear.'],
+  ['act3', 'Crystal Grotto', 'crystals_2', 'Nell found this room. She named most of the good ones down here. I named the Choke.', 'Fond. Dry on "I named the Choke."'],
+  ['act3', 'Crystal Grotto', 'crystals_3', "Nell's my sister. My little sister.", 'Quiet and simple. Don\'t act it.'],
+  ['act3', 'Crystal Grotto', 'crystals_4', 'Couple of years ago she came down on her own. She never came back up.', 'Plain. He\'s said it before, but it still costs him.'],
+  ['act3', 'Crystal Grotto', 'crystals_5', "I still don't know if I'm supposed to say is or was.", 'Barely more than talking to himself. Let it hang.'],
+  ['act3', 'Last Light', 'lastlight_1', "Feel that? That's air. Real air.", 'Excited, but holding it in.'],
+  ['act3', 'Last Light', 'lastlight_2', "I can see your light. You're right underneath me.", 'You\'re close now. Warm, almost laughing.'],
+  ['act3', 'Last Light', 'lastlight_3', "Come on. Don't you dare fall now.", 'Urgent but fond. "Don\'t you dare" with a smile.'],
+  // hints and first times
+  ['hints', 'Near the start, first tight bit', 'hint_tuck', 'Too tight to turn around? Hold [TUCK] and curl up.', 'A helpful tip.', null, 'Too tight to turn around? Hold tuck and curl up.'],
+  ['hints', 'Near the start, first wet rock', 'hint_slick', "The shiny rock's wet. You won't get a grip on it, however much it looks like you will.", 'A warning with a bit of a smile.'],
+  ['hints', 'First time with a lantern', 'once_lantern', "With the lantern you've only got one free hand. [LAMP] puts it down. [LAMP] again picks it back up.", 'Clear instructions.', null, "With the lantern you've only got one free hand. Your lamp button puts it down. Press it again to pick it back up."],
+  ['hints', 'First time resting', 'once_rest', "Lie down for a bit. It's the only real rest you get down here.", 'Kind and slow, like he\'s lying down too.'],
+  ['hints', 'First loose rock', 'once_crumble', 'Careful with the brown rock. It gives way if you hang on it too long.', 'A calm warning.'],
+  ['hints', 'First blackout', 'once_blackout', 'You stayed under too long. Air comes first. Everything else can wait.', 'Relieved you\'re okay, a little stern.'],
+  // reactions
+  ['react', 'Losing ground', 'setback_1', "Ah. The first one's always the worst.", 'Sympathetic. A small sigh.'],
+  ['react', 'Losing ground', 'setback_2', 'Yeah. That happens.', 'A shrug. Totally casual.'],
+  ['react', 'Losing ground', 'setback_3', 'Take a second. At least you know the way now.', 'Calm. Looking on the bright side.'],
+  ['react', 'Losing ground', 'setback_4', "Going down's always quicker, isn't it.", 'A dry joke.'],
+  ['react', 'Losing ground', 'setback_5', 'Nobody does this first try. Nobody.', 'Reassuring. Firm on the second "Nobody".'],
+  ['react', 'Losing ground', 'setback_6', "You're allowed to be annoyed. Just keep a hand on something while you are.", 'Kind and light.'],
+  ['react', 'Losing ground', 'setback_7', 'Ten minutes of climbing, gone in two seconds. I know.', 'Sympathetic. Soft "I know".'],
+  ['react', 'Losing ground', 'setback_8', "It's not going anywhere. Take your time.", 'Calm.'],
+  ['react', 'Losing ground', 'setback_9', "You've done that part once. You can do it again.", 'Encouraging.'],
+  ['react', 'Losing ground', 'setback_10', 'I fell off there so many times. So many.', 'Laughing at himself a bit.'],
+  ['react', 'Losing ground', 'setback_11', 'You were so close. Go again.', 'Encouraging, a bit of energy.'],
+  ['react', 'Losing ground', 'setback_12', 'Breathe out. All the way out. Okay.', 'Slow. Breathe out with them. A quiet "Okay."'],
+  ['react', 'Losing ground, last stretch', 'late_1', "It's fine. You've been higher than this. You'll get back there.", 'Steady and kind.'],
+  ['react', 'Losing ground, last stretch', 'late_2', "She used to fall off right there too. All the time. She'd just laugh and go again.", 'A fond memory, with a smile.'],
+  ['react', 'Losing ground, last stretch', 'late_3', "Don't stop now.", 'Quiet and determined.'],
+  ['react', 'Losing ground, last stretch', 'late_4', "Still here. Radio's on. Take as long as you need.", 'Warm and patient.'],
+  ['react', 'Losing ground, last stretch', 'late_5', "Your hands know the way by now, even if it doesn't feel like it.", 'Confident in you.'],
+  ['react', 'Hard landing', 'landing_1', 'Ooh. Felt that one.', 'A wince.'],
+  ['react', 'Hard landing', 'landing_2', 'Both hands still there? Good.', 'Checking on you, light.'],
+  ['react', 'Hard landing', 'landing_3', "That's going to bruise.", 'A sympathetic wince.'],
+  ['react', 'Hard landing', 'landing_4', 'Easy, easy.', 'Calming.'],
+  ['react', 'Loose rock breaks', 'crumble_1', "That one wasn't going to hold anybody.", 'Dry.'],
+  ['react', 'Loose rock breaks', 'crumble_2', "Brown rock's rotten rock.", 'Matter-of-fact, like an old saying.'],
+  ['react', 'Loose rock breaks', 'crumble_3', 'Loose one. You can feel them give a bit before they go.', 'Calm explanation.'],
+  ['react', 'Blacked out', 'blackout_1', 'Air first. Always.', 'Firm and short.'],
+  ['react', 'Blacked out', 'blackout_2', "You're back where you last had air. Just breathe for a bit.", 'Calm, relieved.'],
+  ['react', 'Blacked out', 'blackout_3', 'Fill up before you go under next time. Every time.', 'A gentle telling-off.'],
+  ['react', 'Fell in a lake', 'lake_1', "Cold, isn't it?", 'Teasing but sympathetic.'],
+  ['react', 'Fell in a lake', 'lake_2', "Swim for the wall that isn't shiny.", 'A helpful tip.'],
+  ['react', 'Fell in a lake', 'lake_3', "Everybody ends up in the lake at some point. Don't worry about it.", 'Casual and comforting.'],
+  ['react', 'Touched a crystal', 'crystal_1', 'Told you. Not the crystals.', 'Dry. A bit "I warned you".'],
+  ['react', 'Touched a crystal', 'crystal_2', 'Back to the flag. Plain rock only.', 'Light.'],
+  ['react', 'Touched a crystal', 'crystal_3', "They're pretty, I know. Still don't touch them.", 'Amused.'],
+  // ending
+  ['ending', 'Ending', 'ending_1', 'Hey. Hey! There you are.', 'Happy and relieved, a bit loud. You just climbed out.'],
+  ['ending', 'Ending', 'ending_2', "Sit down. Go on, you've earned it.", 'Warm, a little out of breath.'],
+  ['ending', 'Ending', 'ending_3', "So that's it, then? The whole thing, top to bottom?", 'Amazed, a little disbelieving.'],
+  ['ending', 'Ending', 'ending_4', "Nobody's ever finished it before. Not even her.", 'Proud. Then a beat before "Not even her."'],
+  ['ending', 'Ending', 'ending_5', 'Can I tell you something?', 'Quieter. Hesitant.'],
+  ['ending', 'Ending', 'ending_6', "The map's not really why I sent you down there.", 'Honest. Slow.'],
+  ['ending', 'Ending', 'ending_7', "I mean, it is. But every time you went quiet on the radio, part of me thought you'd come back on and tell me you'd found her.", 'The hardest line. Don\'t cry it. Say it plainly and let it be heavy on its own.'],
+  ['ending', 'Ending', 'ending_8', "Sitting on a rock down there with a chocolate bar. Like she'd been waiting for hours.", 'Smiling while he pictures it. Soft.'],
+  ['ending', 'Ending', 'ending_9', "You didn't. I know. You'd have said.", 'Gentle. He\'s okay. Don\'t push it.'],
+  ['ending', 'Ending', 'ending_10', "It's a good map, though.", 'Lighter. Moving on.'],
+  ['ending', 'Ending', 'ending_11', "She'd have hated how neat it is.", 'A small laugh.'],
+  ['ending', 'Ending', 'ending_12', "Stay up here a bit? Sun's almost down. She always liked this part.", 'Calm and peaceful. Easy.'],
+].map(([sec, place, id, text, how, flag, say]) => ({ sec, place, id, text, how, cut: flag === 'cut', say: say || null }));
+const LINE_IDS = new Set(LINES.map(L => L.id));
+
+// ---------------------------------------------------------------------------------------------
+// Sound and file helpers (plain functions, no browser needed)
+// ---------------------------------------------------------------------------------------------
+// ---- PURE START ----
+const CRC_TABLE = (() => {
+  const t = new Uint32Array(256);
+  for (let n = 0; n < 256; n++) {
+    let c = n;
+    for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1;
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(bytes) {
+  let c = 0xFFFFFFFF;
+  for (let i = 0; i < bytes.length; i++) c = CRC_TABLE[(c ^ bytes[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+// cut the dead air before and after the talking, keeping a little breath either side.
+// skipStart/skipEnd: ignore the very start and end when looking for talking (that's where the tap on the button is)
+function trimSilence(d, rate, opts) {
+  const o = Object.assign({ pre: 0.12, post: 0.3, skipStart: 0.1, skipEnd: 0.25 }, opts);
+  const win = Math.max(1, Math.round(rate * 0.01));
+  const n = Math.floor(d.length / win);
+  const first = Math.round(o.skipStart * 100);
+  const last = n - 1 - Math.round(o.skipEnd * 100);
+  if (last - first < 5) return d;
+  const rms = new Float32Array(n);
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let j = i * win, e = j + win; j < e; j++) s += d[j] * d[j];
+    rms[i] = Math.sqrt(s / win);
+  }
+  const sorted = rms.slice(first, last + 1).sort();
+  const floor = sorted[Math.floor(sorted.length * 0.1)];
+  const peak = sorted[sorted.length - 1];
+  const thr = Math.max(0.0015, Math.min(Math.max(floor * 4, peak * 0.02), peak * 0.1));
+  let a = first;
+  while (a <= last && rms[a] < thr) a++;
+  if (a > last) return d; // (nothing that sounds like talking: keep it all)
+  let b = last;
+  while (b > a && rms[b] < thr) b--;
+  const start = Math.max(0, a * win - Math.round(rate * o.pre));
+  const end = Math.min(d.length, (b + 1) * win + Math.round(rate * o.post));
+  return d.slice(start, end);
+}
+// even out the volume: talking parts to about -20 dB, loudest point never over -1 dB, at most 8x louder.
+// returns the gain it used
+function levelVoice(d, rate) {
+  const win = Math.max(1, Math.round(rate * 0.02));
+  const n = Math.floor(d.length / win);
+  let peak = 0;
+  for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; }
+  if (peak < 1e-4 || n < 1) return 1;
+  const pw = new Float32Array(n);
+  let top = 0;
+  for (let i = 0; i < n; i++) {
+    let s = 0;
+    for (let j = i * win, e = j + win; j < e; j++) s += d[j] * d[j];
+    pw[i] = s / win;
+    if (pw[i] > top) top = pw[i];
+  }
+  let sum = 0, cnt = 0;
+  for (let i = 0; i < n; i++) if (pw[i] > top * 0.001) { sum += pw[i]; cnt++; }
+  const rms = Math.sqrt(sum / cnt);
+  const g = Math.min(0.1 / rms, 0.89 / peak, 8);
+  for (let i = 0; i < d.length; i++) d[i] *= g;
+  return g;
+}
+// short fades so nothing clicks
+function fadeEdges(d, rate, outSeconds) {
+  const fi = Math.min(d.length >> 1, Math.round(rate * 0.01));
+  const fo = Math.min(d.length >> 1, Math.round(rate * (outSeconds == null ? 0.04 : outSeconds)));
+  for (let i = 0; i < fi; i++) d[i] *= i / fi;
+  for (let i = 0; i < fo; i++) d[d.length - 1 - i] *= i / fo;
+  return d;
+}
+// 16-bit mono PCM .wav
+function encodeWav(samples, rate) {
+  const n = samples.length;
+  const buf = new ArrayBuffer(44 + n * 2);
+  const v = new DataView(buf);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + n * 2, true); w(8, 'WAVE');
+  w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true); v.setUint16(22, 1, true);
+  v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, n * 2, true);
+  for (let i = 0, o = 44; i < n; i++, o += 2) {
+    const s = Math.max(-1, Math.min(1, samples[i]));
+    v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7FFF, true);
+  }
+  return new Uint8Array(buf);
+}
+// what's in a .wav file's header: { rate, channels, bits, dur } (null if it isn't one)
+function wavInfo(bytes) {
+  if (bytes.length < 44) return null;
+  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const tag = o => String.fromCharCode(bytes[o], bytes[o + 1], bytes[o + 2], bytes[o + 3]);
+  if (tag(0) !== 'RIFF' || tag(8) !== 'WAVE') return null;
+  let p = 12, fmt = null, size = -1;
+  while (p + 8 <= bytes.length) {
+    const id = tag(p), len = v.getUint32(p + 4, true);
+    if (id === 'fmt ' && len >= 16) {
+      fmt = { channels: v.getUint16(p + 10, true), rate: v.getUint32(p + 12, true), align: v.getUint16(p + 20, true), bits: v.getUint16(p + 22, true) };
+    } else if (id === 'data') { size = Math.min(len, bytes.length - p - 8); break; }
+    p += 8 + len + (len & 1);
+  }
+  if (!fmt || size < 0 || !fmt.rate || !fmt.align) return null;
+  return { rate: fmt.rate, channels: fmt.channels, bits: fmt.bits, dur: size / (fmt.rate * fmt.align) };
+}
+// a plain (stored, not compressed) .zip: [{ name, data: Uint8Array, date? }] -> byte chunks for a Blob
+function zipStore(files, date) {
+  const enc = new TextEncoder();
+  const dos = d => [
+    (d.getHours() << 11) | (d.getMinutes() << 5) | Math.floor(d.getSeconds() / 2),
+    ((Math.max(1980, d.getFullYear()) - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(),
+  ];
+  const parts = [], central = [];
+  let offset = 0;
+  for (const f of files) {
+    const name = enc.encode(f.name);
+    const crc = crc32(f.data);
+    const size = f.data.length;
+    const [time, day] = dos(f.date || date || new Date());
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true);
+    lh.setUint16(10, time, true); lh.setUint16(12, day, true); lh.setUint32(14, crc, true);
+    lh.setUint32(18, size, true); lh.setUint32(22, size, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, f.data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true);
+    ch.setUint16(10, 0, true); ch.setUint16(12, time, true); ch.setUint16(14, day, true); ch.setUint32(16, crc, true);
+    ch.setUint32(20, size, true); ch.setUint32(24, size, true); ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true);
+    ch.setUint16(32, 0, true); ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, offset, true);
+    central.push(new Uint8Array(ch.buffer), name);
+    offset += 30 + name.length + size;
+  }
+  let cdSize = 0;
+  for (const p of central) cdSize += p.length;
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(4, 0, true); end.setUint16(6, 0, true);
+  end.setUint16(8, files.length, true); end.setUint16(10, files.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true); end.setUint16(20, 0, true);
+  return parts.concat(central, [new Uint8Array(end.buffer)]);
+}
+// the files inside a .zip: [{ name, method (0 stored, 8 deflated), data }]
+function readZipEntries(bytes) {
+  const v = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  let eocd = -1;
+  for (let i = bytes.length - 22; i >= Math.max(0, bytes.length - 22 - 65535); i--) {
+    if (v.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+  }
+  if (eocd < 0) throw new Error("that isn't a zip file");
+  const count = v.getUint16(eocd + 10, true);
+  let p = v.getUint32(eocd + 16, true);
+  const dec = new TextDecoder();
+  const out = [];
+  for (let k = 0; k < count; k++) {
+    if (p + 46 > bytes.length || v.getUint32(p, true) !== 0x02014b50) throw new Error('the zip looks broken');
+    const method = v.getUint16(p + 10, true);
+    const csize = v.getUint32(p + 20, true);
+    const nameLen = v.getUint16(p + 28, true), extraLen = v.getUint16(p + 30, true), commentLen = v.getUint16(p + 32, true);
+    const at = v.getUint32(p + 42, true);
+    const name = dec.decode(bytes.subarray(p + 46, p + 46 + nameLen));
+    const start = at + 30 + v.getUint16(at + 26, true) + v.getUint16(at + 28, true);
+    out.push({ name, method, data: bytes.subarray(start, start + csize) });
+    p += 46 + nameLen + extraLen + commentLen;
+  }
+  return out;
+}
+// ---- PURE END ----
+
+// ---------------------------------------------------------------------------------------------
+// Saved takes: IndexedDB (they survive closing the page). Small settings go in localStorage
+// ---------------------------------------------------------------------------------------------
+const $ = id => document.getElementById(id);
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const local = {
+  get(k, def) { try { const v = localStorage.getItem('cavevoice.' + k); return v === null ? def : JSON.parse(v); } catch (e) { return def; } },
+  set(k, v) { try { localStorage.setItem('cavevoice.' + k, JSON.stringify(v)); } catch (e) {} },
+};
+const settings = Object.assign({ clean: true, trim: true, playback: true }, local.get('settings', {}));
+
+let dbPromise = null;
+function openDb() {
+  if (!dbPromise) {
+    dbPromise = new Promise((res, rej) => {
+      let req;
+      try { req = indexedDB.open('cavediving-voice', 1); } catch (e) { rej(e); return; }
+      req.onupgradeneeded = () => req.result.createObjectStore('takes', { keyPath: 'id' });
+      req.onsuccess = () => {
+        const db = req.result;
+        db.onversionchange = () => db.close();
+        db.onclose = () => { dbPromise = null; };
+        res(db);
+      };
+      req.onerror = () => rej(req.error);
+    });
+  }
+  return dbPromise;
+}
+async function idb(mode, fn, retry = true) {
+  try {
+    const db = await openDb();
+    return await new Promise((res, rej) => {
+      const t = db.transaction('takes', mode);
+      let out;
+      const r = fn(t.objectStore('takes'));
+      if (r) r.onsuccess = () => { out = r.result; };
+      t.oncomplete = () => res(out);
+      t.onerror = () => rej(t.error);
+      t.onabort = () => rej(t.error || new Error('aborted'));
+    });
+  } catch (e) {
+    if (!retry) throw e;
+    // (Safari sometimes drops the connection after the page sat in the background: reopen once)
+    try { (await dbPromise).close(); } catch (x) {}
+    dbPromise = null;
+    return idb(mode, fn, false);
+  }
+}
+const memory = new Map(); // (only used if this browser won't keep anything)
+let persistent = true;
+async function saveTake(rec) {
+  if (persistent) {
+    try { await idb('readwrite', s => s.put(rec)); memory.delete(rec.id); return; } catch (e) {
+      persistent = false;
+      showBanner("Couldn't save to this browser's storage. Your takes stay until you close the page, so export soon.");
+    }
+  }
+  memory.set(rec.id, rec);
+}
+async function loadTake(id) {
+  if (memory.has(id)) return memory.get(id);
+  if (!persistent) return null;
+  try { return await idb('readonly', s => s.get(id)); } catch (e) { return null; }
+}
+async function deleteTake(id) {
+  memory.delete(id);
+  if (persistent) { try { await idb('readwrite', s => s.delete(id)); } catch (e) {} }
+}
+async function allTakes() {
+  const byId = new Map();
+  if (persistent) {
+    try { for (const r of (await idb('readonly', s => s.getAll())) || []) if (r && r.id) byId.set(r.id, r); } catch (e) {}
+  }
+  for (const r of memory.values()) byId.set(r.id, r);
+  return Array.from(byId.values());
+}
+function showBanner(text) {
+  const b = $('banner');
+  b.textContent = text;
+  b.style.display = 'block';
+}
+
+// ---------------------------------------------------------------------------------------------
+// The screen
+// ---------------------------------------------------------------------------------------------
+let idx = Math.max(0, Math.min(Number(local.get('idx', 0)) || 0, LINES.length - 1));
+const done = new Map(); // line id -> { dur }
+let state = 'idle'; // idle | starting | recording | processing
+let undo = null; // { id, rec }: the take that was just replaced or deleted
+
+function esc(s) { return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]); }
+function render() {
+  const L = LINES[idx];
+  const sec = SECTIONS[L.sec];
+  $('where').textContent = `${sec.title} · ${L.place} · ${L.id}`;
+  const prev = LINES[idx - 1];
+  $('prev').textContent = prev && prev.sec === L.sec && prev.place === L.place ? 'Before this: ' + prev.text : '';
+  $('line').textContent = L.text;
+  $('say').textContent = L.say ? 'Say it as: "' + L.say + '"' : '';
+  $('how').textContent = L.how;
+  $('note').textContent = sec.note;
+  const t = done.get(L.id);
+  $('status').textContent = t ? `Recorded · ${t.dur.toFixed(1)} s` : 'Not recorded yet';
+  $('status').className = 'status' + (t ? ' ok' : '');
+  $('count').textContent = `${done.size} / ${LINES.length}`;
+  $('barFill').style.width = (done.size / LINES.length * 100) + '%';
+  const busy = state !== 'idle';
+  $('btnPlay').disabled = !t || busy;
+  $('btnDelete').disabled = !t || busy;
+  $('btnPrev').disabled = idx === 0 || busy;
+  $('btnNext').disabled = idx === LINES.length - 1 || busy;
+  $('btnNextMissing').disabled = busy || done.size === LINES.length;
+  $('undoRow').classList.toggle('show', !busy && !!undo && undo.id === L.id);
+  if (!busy) $('btnRec').textContent = t ? 'Record again' : 'Record';
+  local.set('idx', idx);
+}
+function go(i) {
+  if (state !== 'idle') return;
+  stopPlayback();
+  idx = Math.max(0, Math.min(LINES.length - 1, i));
+  render();
+}
+function nextMissing() {
+  if (state !== 'idle') return;
+  for (let k = 1; k <= LINES.length; k++) {
+    const i = (idx + k) % LINES.length;
+    if (!done.has(LINES[i].id)) { go(i); return; }
+  }
+  toast('Every line is recorded. Time to export!');
+}
+let toastTimer = 0;
+function toast(text) {
+  const t = $('toast');
+  t.textContent = text;
+  t.style.display = 'block';
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { t.style.display = 'none'; }, 4000);
+}
+function setState(s, label) {
+  state = s;
+  const b = $('btnRec');
+  b.className = s === 'recording' ? 'recording' : (s === 'idle' ? '' : 'busy');
+  if (label) b.textContent = label;
+  render();
+}
+
+// ---------------------------------------------------------------------------------------------
+// Playback: a plain audio element, so the iPhone's silent switch doesn't mute it
+// ---------------------------------------------------------------------------------------------
+const player = new Audio();
+let playerUrl = '';
+let unlocked = false;
+const SILENT = URL.createObjectURL(new Blob([encodeWav(new Float32Array(2205), 44100)], { type: 'audio/wav' }));
+function unlockPlayer() { // (call straight from a tap: after that, iPhone lets the page play takes on its own)
+  if (unlocked) return;
+  unlocked = true;
+  try { player.src = SILENT; const p = player.play(); if (p && p.catch) p.catch(() => {}); } catch (e) {}
+}
+function stopPlayback() { try { player.pause(); } catch (e) {} }
+function playBlob(blob, quiet) {
+  stopPlayback();
+  if (playerUrl) URL.revokeObjectURL(playerUrl);
+  playerUrl = URL.createObjectURL(blob);
+  player.src = playerUrl;
+  try {
+    const p = player.play();
+    if (p && p.catch) p.catch(() => { if (!quiet) toast("Couldn't play it. Tap Play take again."); });
+  } catch (e) {}
+}
+async function playCurrent() {
+  if (state !== 'idle') return;
+  unlockPlayer();
+  const rec = await loadTake(LINES[idx].id);
+  if (!rec) { toast('No take for this line yet.'); return; }
+  playBlob(rec.wav);
+}
+
+// ---------------------------------------------------------------------------------------------
+// Recording
+// ---------------------------------------------------------------------------------------------
+const APPLE = /Apple/.test(navigator.vendor || '');
+let ctx = null, stream = null, recorder = null, chunks = [], source = null, analyser = null, sink = null;
+let tap = null, pcm = [], pcmRate = 0; // (a raw copy of the audio, used if the recording can't be decoded)
+let startedAt = 0, meterFrame = 0, autoStop = 0, wakeLock = null;
+function audio() {
+  if (!ctx) { const C = window.AudioContext || window.webkitAudioContext; ctx = new C(); }
+  return ctx;
+}
+function constraints() {
+  return settings.clean
+    ? { echoCancellation: true, noiseSuppression: true, autoGainControl: false, voiceIsolation: true, channelCount: 1 } // (no auto-gain: it pumps and clips; levelVoice evens the volume out afterwards)
+    : { echoCancellation: false, noiseSuppression: false, autoGainControl: false, channelCount: 1 };
+}
+function pickMime() {
+  if (!window.MediaRecorder || !MediaRecorder.isTypeSupported) return '';
+  const order = APPLE
+    ? ['audio/mp4', 'audio/webm;codecs=opus', 'audio/webm']
+    : ['audio/webm;codecs=opus', 'audio/webm', 'audio/ogg;codecs=opus', 'audio/mp4'];
+  for (const t of order) if (MediaRecorder.isTypeSupported(t)) return t;
+  return '';
+}
+function makeRecorder(s) {
+  const mime = pickMime();
+  const opts = { audioBitsPerSecond: 192000 };
+  if (mime) opts.mimeType = mime;
+  try { return new MediaRecorder(s, opts); } catch (e) {}
+  try { return mime ? new MediaRecorder(s, { mimeType: mime }) : new MediaRecorder(s); } catch (e) {}
+  return null;
+}
+function micError(e) {
+  const n = e && e.name;
+  if (n === 'NotAllowedError' || n === 'SecurityError') return 'The mic is blocked. Allow it for this site (Safari: aA in the address bar > Website Settings > Microphone) and try again.';
+  if (n === 'NotFoundError') return 'No microphone found.';
+  return "Couldn't start the mic: " + ((e && e.message) || e);
+}
+async function keepAwake() {
+  try {
+    if (navigator.wakeLock && !wakeLock && !document.hidden) {
+      wakeLock = await navigator.wakeLock.request('screen');
+      wakeLock.addEventListener('release', () => { wakeLock = null; });
+    }
+  } catch (e) {}
+}
+async function startRec() {
+  if (state !== 'idle') return;
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    toast(window.isSecureContext ? "This browser can't record audio." : 'Open this page from its https:// link. The mic is blocked otherwise.');
+    return;
+  }
+  stopPlayback();
+  unlockPlayer();
+  const c = audio();
+  const resumed = c.resume().catch(() => {}); // (inside the tap, so the browser lets it run)
+  undo = undo && undo.id === LINES[idx].id ? undo : null;
+  setState('starting', 'Starting mic...');
+  keepAwake();
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ audio: constraints() });
+    await resumed;
+    if (c.state !== 'running') c.resume().catch(() => {});
+    source = c.createMediaStreamSource(stream);
+    analyser = c.createAnalyser();
+    analyser.fftSize = 1024;
+    sink = c.createGain();
+    sink.gain.value = 0; // (Safari only runs nodes that reach the speakers; this one stays silent)
+    source.connect(analyser);
+    analyser.connect(sink);
+    sink.connect(c.destination);
+    pcm = [];
+    pcmRate = c.sampleRate;
+    tap = null;
+    try {
+      tap = c.createScriptProcessor(4096, 1, 1);
+      tap.onaudioprocess = e => { if (state === 'recording') pcm.push(new Float32Array(e.inputBuffer.getChannelData(0))); };
+      source.connect(tap);
+      tap.connect(sink);
+    } catch (e) { tap = null; }
+    chunks = [];
+    recorder = window.MediaRecorder ? makeRecorder(stream) : null;
+    if (recorder) {
+      recorder.ondataavailable = e => { if (e.data && e.data.size) chunks.push(e.data); };
+      const started = new Promise(r => { recorder.onstart = r; });
+      recorder.start();
+      await Promise.race([started, wait(2000)]);
+    } else if (!tap) {
+      throw new Error("this browser can't record audio");
+    }
+    startedAt = performance.now();
+    setState('recording', 'Stop');
+    meter();
+    autoStop = setTimeout(stopRec, 45000);
+  } catch (e) {
+    releaseMic();
+    setState('idle');
+    toast(micError(e));
+  }
+}
+function meter() {
+  const fill = $('meterFill');
+  const size = analyser ? analyser.fftSize : 1024;
+  const fbuf = new Float32Array(size), bbuf = new Uint8Array(size);
+  const tick = () => {
+    if (state !== 'recording' || !analyser) { fill.style.width = '0'; return; }
+    let peak = 0;
+    if (analyser.getFloatTimeDomainData) {
+      analyser.getFloatTimeDomainData(fbuf);
+      for (let i = 0; i < size; i++) { const a = Math.abs(fbuf[i]); if (a > peak) peak = a; }
+    } else {
+      analyser.getByteTimeDomainData(bbuf);
+      for (let i = 0; i < size; i++) { const a = Math.abs(bbuf[i] - 128) / 128; if (a > peak) peak = a; }
+    }
+    fill.style.width = Math.min(100, Math.sqrt(peak) * 100) + '%';
+    fill.className = peak > 0.97 ? 'hot' : '';
+    $('btnRec').textContent = 'Stop · ' + ((performance.now() - startedAt) / 1000).toFixed(1) + ' s';
+    meterFrame = requestAnimationFrame(tick);
+  };
+  tick();
+}
+function releaseMic() {
+  for (const n of [source, analyser, tap, sink]) { try { if (n) n.disconnect(); } catch (e) {} }
+  if (tap) tap.onaudioprocess = null;
+  source = analyser = sink = tap = null;
+  if (stream) stream.getTracks().forEach(t => t.stop()); // (mic off between takes, so playback comes out of the speaker)
+  stream = null;
+}
+function pcmBuffer() {
+  let n = 0;
+  for (const p of pcm) n += p.length;
+  if (!n || !pcmRate) return null;
+  const b = audio().createBuffer(1, n, pcmRate);
+  const d = b.getChannelData(0);
+  let o = 0;
+  for (const p of pcm) { d.set(p, o); o += p.length; }
+  pcm = [];
+  return b;
+}
+async function stopRec() {
+  if (state !== 'recording') return;
+  clearTimeout(autoStop);
+  cancelAnimationFrame(meterFrame);
+  $('meterFill').style.width = '0';
+  const took = (performance.now() - startedAt) / 1000;
+  setState('processing', 'Saving...');
+  const r = recorder;
+  recorder = null;
+  if (r && r.state !== 'inactive') {
+    const stopped = new Promise(res => { r.onstop = res; });
+    try { r.stop(); } catch (e) {}
+    await Promise.race([stopped, wait(3000)]);
+  }
+  const type = (r && r.mimeType) || (chunks[0] && chunks[0].type) || '';
+  const raw = chunks.length ? new Blob(chunks, { type }) : null;
+  chunks = [];
+  const backup = pcmBuffer();
+  releaseMic();
+  const L = LINES[idx];
+  try {
+    let buf = null;
+    if (raw) { try { buf = await decode(await raw.arrayBuffer()); } catch (e) { buf = null; } }
+    if (backup && (!buf || buf.duration < Math.min(took, backup.duration) - 0.75)) buf = backup;
+    if (!buf) throw new Error('the recording came back empty');
+    const t = await processTake(buf, L);
+    const wav = new Blob([encodeWav(t.samples, t.rate)], { type: 'audio/wav' });
+    const dur = t.samples.length / t.rate;
+    const old = done.has(L.id) ? await loadTake(L.id) : null;
+    await saveTake({ id: L.id, wav, dur, at: Date.now() });
+    undo = old ? { id: L.id, rec: old } : null;
+    done.set(L.id, { dur });
+    askToKeep();
+    setState('idle');
+    if (t.clipped) toast('That one was too loud and crackled. Hold the phone a bit further away and redo it.');
+    else if (t.quiet) toast('That was very quiet. Hold the phone a bit closer or speak up a little.');
+    else if (dur < 0.3) toast("That one's very short. Play it back and redo it if it got cut off.");
+    if (settings.playback) playBlob(wav, true);
+  } catch (e) {
+    setState('idle');
+    toast("Couldn't save that take (" + ((e && e.message) || e) + '). Try again.');
+  }
+}
+function decode(arrayBuffer) {
+  const c = audio();
+  return new Promise((res, rej) => {
+    const p = c.decodeAudioData(arrayBuffer, res, rej);
+    if (p && p.catch) p.catch(rej);
+  });
+}
+function renderOffline(off) {
+  return new Promise((res, rej) => {
+    off.oncomplete = e => res(e.renderedBuffer);
+    try { const p = off.startRendering(); if (p && p.then) p.then(res, rej); } catch (e) { rej(e); }
+  });
+}
+// any decoded audio -> mono 44.1 kHz samples, optionally with the rumble taken out
+async function renderMono(buf, highpass) {
+  const RATE = 44100;
+  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+  const off = new OAC(1, Math.max(1, Math.ceil(buf.duration * RATE)), RATE);
+  const src = off.createBufferSource();
+  src.buffer = buf;
+  let node = src;
+  if (highpass) { // (takes out rumble and handling noise under the voice)
+    const hp = off.createBiquadFilter();
+    hp.type = 'highpass';
+    hp.frequency.value = 75;
+    hp.Q.value = 0.707;
+    src.connect(hp);
+    node = hp;
+  }
+  node.connect(off.destination);
+  src.start(0);
+  return (await renderOffline(off)).getChannelData(0).slice();
+}
+async function processTake(buf, L) {
+  const RATE = 44100;
+  // how loud the raw take got, not counting the taps on the button at the very start and end
+  const raw = buf.getChannelData(0);
+  const r0 = Math.round(0.1 * buf.sampleRate), r1 = Math.max(r0, raw.length - Math.round(0.2 * buf.sampleRate));
+  let peak = 0, hot = 0;
+  for (let i = r0; i < r1; i++) { const a = Math.abs(raw[i]); if (a > peak) peak = a; if (a >= 0.99) hot++; }
+  let d = await renderMono(buf, true);
+  let gain = 1;
+  if (settings.trim) {
+    d = trimSilence(d, RATE, L.cut ? { post: 0.02, skipEnd: 0.2 } : null);
+    gain = levelVoice(d, RATE);
+  }
+  fadeEdges(d, RATE, L.cut ? 0.004 : 0.04);
+  return { samples: d, rate: RATE, clipped: hot >= 8, quiet: peak < 0.03 || gain >= 7.9 };
+}
+let persistAsked = false;
+function askToKeep() {
+  if (persistAsked) return;
+  persistAsked = true;
+  try { if (navigator.storage && navigator.storage.persist) navigator.storage.persist(); } catch (e) {}
+}
+
+// ---------------------------------------------------------------------------------------------
+// The list, export and loading takes back in
+// ---------------------------------------------------------------------------------------------
+function openSheet(id) { $(id).classList.add('open'); }
+function closeSheets() { document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open')); }
+function renderList() {
+  const only = $('onlyMissing').checked;
+  let html = '', last = '';
+  LINES.forEach((L, i) => {
+    if (only && done.has(L.id)) return;
+    if (L.sec !== last) { html += `<div class="lh">${esc(SECTIONS[L.sec].title)}</div>`; last = L.sec; }
+    html += `<button class="li${i === idx ? ' cur' : ''}" data-i="${i}"><span class="tick">${done.has(L.id) ? '&#10003;' : ''}</span>` +
+      `<span class="lid">${esc(L.id)}</span><span class="lt">${esc(L.text)}</span></button>`;
+  });
+  $('listBody').innerHTML = html || '<p class="dim">Every line is recorded.</p>';
+}
+let zipBlob = null;
+const ZIP_NAME = 'Voice.zip';
+function renderExport() {
+  $('expCount').textContent = `${done.size} of ${LINES.length} lines recorded`;
+  const missing = LINES.filter(L => !done.has(L.id)).map(L => L.id);
+  $('expMissing').textContent = missing.length
+    ? 'Still to do: ' + missing.slice(0, 12).join(', ') + (missing.length > 12 ? `, and ${missing.length - 12} more` : '')
+    : 'All done!';
+  $('btnMakeZip').disabled = done.size === 0;
+  zipBlob = null;
+  $('zipStatus').textContent = '';
+  $('btnDownload').style.display = 'none';
+  $('btnShare').style.display = 'none';
+}
+async function makeZip() {
+  $('btnMakeZip').disabled = true;
+  $('zipStatus').textContent = 'Packing...';
+  try {
+    const order = new Map(LINES.map((L, i) => [L.id, i]));
+    const takes = (await allTakes()).filter(r => order.has(r.id));
+    takes.sort((a, b) => order.get(a.id) - order.get(b.id));
+    const files = [];
+    for (const r of takes) {
+      files.push({ name: r.id + '.wav', data: new Uint8Array(await r.wav.arrayBuffer()), date: r.at ? new Date(r.at) : null });
+    }
+    zipBlob = new Blob(zipStore(files), { type: 'application/zip' });
+    $('zipStatus').textContent = `${files.length} files · ${(zipBlob.size / 1048576).toFixed(1)} MB`;
+    $('btnDownload').style.display = 'block';
+    let canShare = false;
+    try { canShare = !!(navigator.canShare && navigator.share && navigator.canShare({ files: [new File([zipBlob], ZIP_NAME, { type: 'application/zip' })] })); } catch (e) {}
+    $('btnShare').style.display = canShare ? 'block' : 'none';
+  } catch (e) {
+    $('zipStatus').textContent = "Couldn't make the zip: " + ((e && e.message) || e);
+  }
+  $('btnMakeZip').disabled = false;
+}
+function downloadZip() {
+  if (!zipBlob) return;
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(zipBlob);
+  a.download = ZIP_NAME;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 10000);
+}
+async function shareZip() {
+  if (!zipBlob) return;
+  try {
+    await navigator.share({ files: [new File([zipBlob], ZIP_NAME, { type: 'application/zip' })], title: 'Cavediving voice lines' });
+  } catch (e) {
+    if (!e || e.name !== 'AbortError') toast("Couldn't share it: " + ((e && e.message) || e));
+  }
+}
+async function inflate(bytes) {
+  if (!window.DecompressionStream) throw new Error("this browser can't open compressed zips");
+  const out = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  return new Uint8Array(await new Response(out).arrayBuffer());
+}
+async function importFiles(list) {
+  const replace = $('importReplace').checked;
+  const status = $('importStatus');
+  const n = { added: 0, replaced: 0, kept: 0, skipped: 0 };
+  status.textContent = 'Loading...';
+  const take = async (name, bytes) => {
+    const base = name.split('/').pop();
+    const dot = base.lastIndexOf('.');
+    const id = (dot > 0 ? base.slice(0, dot) : base).trim().toLowerCase();
+    if (!LINE_IDS.has(id)) { n.skipped++; return; }
+    if (done.has(id) && !replace) { n.kept++; return; }
+    let wav, dur;
+    const info = wavInfo(bytes);
+    if (info && info.dur > 0) {
+      wav = new Blob([bytes], { type: 'audio/wav' });
+      dur = info.dur;
+    } else { // (other audio, like an .m4a: turn it into a .wav)
+      const d = await renderMono(await decode(bytes.slice().buffer), false);
+      wav = new Blob([encodeWav(d, 44100)], { type: 'audio/wav' });
+      dur = d.length / 44100;
+    }
+    const had = done.has(id);
+    await saveTake({ id, wav, dur, at: Date.now() });
+    done.set(id, { dur });
+    if (had) n.replaced++; else n.added++;
+  };
+  for (const f of Array.from(list)) {
+    try {
+      if (/\.zip$/i.test(f.name)) {
+        for (const e of readZipEntries(new Uint8Array(await f.arrayBuffer()))) {
+          const base = e.name.split('/').pop();
+          if (!base || e.name.startsWith('__MACOSX/') || base.startsWith('._')) continue;
+          try {
+            if (e.method === 0) await take(e.name, e.data);
+            else if (e.method === 8) await take(e.name, await inflate(e.data));
+            else n.skipped++;
+          } catch (x) { n.skipped++; }
+        }
+      } else {
+        await take(f.name, new Uint8Array(await f.arrayBuffer()));
+      }
+    } catch (e) {
+      n.skipped++;
+      toast(f.name + ': ' + ((e && e.message) || e));
+    }
+  }
+  const bits = [`Loaded ${n.added + n.replaced} take${n.added + n.replaced === 1 ? '' : 's'}`];
+  if (n.replaced) bits.push(`${n.replaced} replaced`);
+  if (n.kept) bits.push(`kept ${n.kept} you already had (tick "Replace" to swap them)`);
+  if (n.skipped) bits.push(`skipped ${n.skipped} file${n.skipped === 1 ? '' : 's'} that didn't match a line`);
+  status.textContent = bits.join(', ') + '.';
+  askToKeep();
+  renderExport();
+  render();
+}
+
+// ---------------------------------------------------------------------------------------------
+// Wiring
+// ---------------------------------------------------------------------------------------------
+$('btnRec').addEventListener('click', () => { if (state === 'recording') stopRec(); else startRec(); });
+$('btnPrev').addEventListener('click', () => go(idx - 1));
+$('btnNext').addEventListener('click', () => go(idx + 1));
+$('btnNextMissing').addEventListener('click', nextMissing);
+$('btnPlay').addEventListener('click', playCurrent);
+$('btnDelete').addEventListener('click', async () => {
+  const b = $('btnDelete');
+  if (b.dataset.armed !== '1') { // (tap twice: no pop-ups)
+    b.dataset.armed = '1';
+    b.textContent = 'Tap again to delete';
+    setTimeout(() => { b.dataset.armed = ''; b.textContent = 'Delete take'; }, 2500);
+    return;
+  }
+  b.dataset.armed = '';
+  b.textContent = 'Delete take';
+  if (state !== 'idle') return;
+  stopPlayback();
+  const id = LINES[idx].id;
+  const rec = await loadTake(id);
+  await deleteTake(id);
+  done.delete(id);
+  if (rec) undo = { id, rec };
+  render();
+});
+$('btnUndo').addEventListener('click', async () => {
+  if (!undo || state !== 'idle') return;
+  unlockPlayer();
+  const u = undo;
+  undo = null;
+  await saveTake(u.rec);
+  done.set(u.id, { dur: u.rec.dur || 0 });
+  render();
+  toast('The earlier take is back.');
+  if (LINES[idx].id === u.id) playBlob(u.rec.wav, true);
+});
+$('btnList').addEventListener('click', () => { renderList(); openSheet('sheetList'); });
+$('btnTips').addEventListener('click', () => openSheet('sheetTips'));
+$('btnExport').addEventListener('click', () => { renderExport(); $('importStatus').textContent = ''; openSheet('sheetExport'); });
+$('btnMakeZip').addEventListener('click', makeZip);
+$('btnDownload').addEventListener('click', downloadZip);
+$('btnShare').addEventListener('click', shareZip);
+$('fileImport').addEventListener('change', async e => {
+  const files = e.target.files;
+  if (files && files.length) await importFiles(files);
+  e.target.value = '';
+});
+$('onlyMissing').addEventListener('change', renderList);
+$('listBody').addEventListener('click', e => {
+  const b = e.target.closest('[data-i]');
+  if (b) { closeSheets(); go(Number(b.dataset.i)); }
+});
+document.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', () => {
+  closeSheets();
+  local.set('seenTips', true);
+}));
+for (const [id, key] of [['setClean', 'clean'], ['setTrim', 'trim'], ['setPlayback', 'playback']]) {
+  const box = $(id);
+  box.checked = !!settings[key];
+  box.addEventListener('change', () => { settings[key] = box.checked; local.set('settings', settings); });
+}
+document.addEventListener('keydown', e => {
+  if (document.querySelector('.sheet.open') || e.metaKey || e.ctrlKey || e.altKey || e.repeat) return;
+  const k = e.key;
+  if (e.code === 'Space' || k === ' ') {
+    e.preventDefault();
+    if (document.activeElement && document.activeElement.blur) document.activeElement.blur();
+    if (state === 'recording') stopRec(); else startRec();
+  } else if (k === 'ArrowRight') go(idx + 1);
+  else if (k === 'ArrowLeft') go(idx - 1);
+  else if (k === 'p' || k === 'P') playCurrent();
+  else if (k === 'n' || k === 'N') nextMissing();
+});
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden && state === 'recording') stopRec(); // (switched apps mid-take: keep what you've got)
+  if (!document.hidden) keepAwake();
+});
+
+// ---------------------------------------------------------------------------------------------
+// Start
+// ---------------------------------------------------------------------------------------------
+(async () => {
+  if (!window.isSecureContext) {
+    showBanner('The mic only works when this page is opened from an https:// link (for example GitHub Pages).');
+  }
+  try {
+    await openDb();
+    for (const r of await allTakes()) if (LINE_IDS.has(r.id)) done.set(r.id, { dur: r.dur || 0 });
+  } catch (e) {
+    persistent = false;
+    showBanner("This browser won't keep your takes after you close the page (private browsing?), so export before you leave.");
+  }
+  render();
+  if (!local.get('seenTips', false)) openSheet('sheetTips');
+})();
+})();
+</script>
+</body>
+</html>
